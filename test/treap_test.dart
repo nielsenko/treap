@@ -60,6 +60,59 @@ void main() {
       });
     });
 
+    group('iterator', () {
+      test('values', () {
+        final t = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        expect(t.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      });
+
+      test('take, skip', () {
+        final t = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        for (var i = 0; i < t.size + 10; ++i) {
+          expect(t.take(i).values, t.values.take(i));
+          expect(t.skip(i).values, t.values.skip(i));
+        }
+        // same exception on negative input, as iterator
+        expect(() => t.values.take(-1), throwsRangeError);
+        expect(() => t.take(-1), throwsRangeError);
+        expect(() => t.values.skip(-1), throwsRangeError);
+        expect(() => t.skip(-1), throwsRangeError);
+      });
+
+      test('first, last, firstOrDefault, lastOrDefault', () {
+        // same exception on empty treap, as on empty iterator
+        final empty = Treap<num>();
+        expect(() => empty.values.first, throwsStateError);
+        expect(() => empty.first, throwsStateError);
+        expect(empty.firstOrDefault, null);
+        expect(() => empty.values.last, throwsStateError);
+        expect(() => empty.last, throwsStateError);
+        expect(empty.lastOrDefault, null);
+
+        final single = Treap<num>.build([1]);
+        expect(single.first, single.last);
+        expect(single.first, single.firstOrDefault);
+        expect(single.first, single.lastOrDefault);
+
+        final many = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        expect(many.first, many.values.first);
+        expect(many.first, 0);
+        expect(many.last, many.values.last);
+        expect(many.last, 9);
+      });
+
+      test('prev, next', () {
+        final t = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final l = t.values.toList();
+        for (var i = 1; i < l.length - 1; ++i) {
+          expect(t.prev(t.select(i)), l[i - 1]);
+          expect(t.next(t.select(i)), l[i + 1]);
+        }
+        expect(() => t.prev(0), throwsRangeError);
+        expect(() => t.next(t.last), throwsRangeError);
+      });
+    });
+
     group('set algebra', () {
       test('union, intersection, difference', () {
         final x = Treap.build(['foo', 'bar']);
