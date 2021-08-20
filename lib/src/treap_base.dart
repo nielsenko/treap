@@ -22,6 +22,10 @@ class Treap<T extends Comparable<T>> {
 
   T? find(T item) => _node?.find(item)?.item;
 
+  int rank(T item) => _node!.rank(item);
+
+  T findByRank(int rank) => _node!.findByRank(rank).item;
+
   bool has(T item) => find(item) != null;
 
   Treap<T> union(Treap<T> other) {

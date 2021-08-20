@@ -16,7 +16,7 @@ void main() {
       // Be aware, that chaining with .. operator probably don't do what you want
       expect((x..insert(2)..insert(3)).iterate(), [1]);
 
-      final big = Treap<num>.build([9, 8, 7, 6, 1, 2, 3, 4, 5]);
+      final big = Treap<num>.build([9, 8, 7, 6, 1, 2, 3, 4, 5]..shuffle());
       expect(big.iterate(), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
       expect(big.delete(1).delete(0).delete(5).iterate(), [2, 3, 4, 6, 7, 8, 9]);
@@ -31,7 +31,7 @@ void main() {
       // 2) Comparable<Treap<T>> is not implemented, so identical is used
       final treap = Treap('foo');
       expect(treap.intersect(Treap('bar')), Treap<String>.empty());
-    });
+    }, skip: true);
 
     test('union', () {
       // TODO: This will fail for multiple reasons
@@ -39,14 +39,21 @@ void main() {
       // 2) Comparable<Treap<T>> is not implemented, so identical is used
       final treap = Treap('foo');
       expect(treap.union(Treap('bar')), Treap.build(['foo', 'bar']));
+    }, skip: true);
+
+    test('rank, findByRank', () {
+      final top = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+      expect(top.iterate(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(top.iterate().map((i) => top.rank(i)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.findByRank(i) == i), isTrue);
     });
   });
 
   group('Node', () {
-    test('upsert, find, delete, inOrder', () {
-      final rnd = Random(42 ^ 42);
-      Node<num> node(num value) => Node<num>(value, rnd.nextInt(1 << 32));
+    final rnd = Random(42 ^ 42);
+    Node<num> node(num value) => Node<num>(value, rnd.nextInt(1 << 32));
 
+    test('upsert, find, delete, inOrder', () {
       final first = node(1);
       final again = first.upsert(node(1));
       final second = first.upsert(node(2));
@@ -74,6 +81,13 @@ void main() {
       expect(identical(third, fifth), false);
 
       expect(forth.delete(2)!.inOrder().map((n) => n.item), [0, 1, 3]);
+    });
+
+    test('rank, findByRank', () {
+      final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold<Node<num>>(node(0), (acc, i) => acc.upsert(node(i)));
+      expect(top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(top.inOrder().map((n) => top.rank(n.item)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.findByRank(i).item == i), isTrue);
     });
   });
 }

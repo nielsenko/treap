@@ -1,9 +1,12 @@
 class Node<T extends Comparable<T>> {
-  final int priority;
   final T item;
+  final int priority;
+  final int _size;
   final Node<T>? left, right;
 
-  const Node(this.item, this.priority, {this.left, this.right});
+  Node(this.item, this.priority, {this.left, this.right}) : _size = 1 + size(left) + size(right);
+
+  static int size(Node? n) => n?._size ?? 0;
 
   //     t          L
   //    / \        / \
@@ -11,6 +14,7 @@ class Node<T extends Comparable<T>> {
   //  / \            / \
   // x   y          y   r
   //
+  /// throws if no left child exists
   Node<T> spinRight() {
     final l = left!;
     final x = l.left;
@@ -24,6 +28,7 @@ class Node<T extends Comparable<T>> {
   //      / \      / \
   //     x   y    l   x
   //
+  /// throws if no right child exists
   Node<T> spinLeft() {
     final r = right!;
     final x = r.left;
@@ -55,6 +60,24 @@ class Node<T extends Comparable<T>> {
     if (order < 0) return left?.find(item);
     if (order > 0) return right?.find(item);
     return this; // order == 0
+  }
+
+  /// zero-based, throws if item not found
+  int rank(T item) {
+    final order = item.compareTo(this.item);
+    if (order < 0) return left!.rank(item);
+    final l = size(left);
+    if (order > 0) return l + 1 + right!.rank(item);
+    return l; // order == 0
+  }
+
+  /// throws if item not found
+  Node<T> findByRank(int rank) {
+    if (rank < 0 || rank >= _size) throw Error(); // TODO: Choose error!
+    final l = size(left);
+    if (rank < l) return left!.findByRank(rank); // 0 < rank < l implies left != null
+    if (rank == l) return this;
+    return right!.findByRank(rank - l - 1);
   }
 
   Node<T>? delete(T dead) {
