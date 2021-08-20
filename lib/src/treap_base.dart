@@ -31,6 +31,22 @@ class Treap<T extends Comparable<T>> {
 
   Iterable<T> get values => _root.values;
 
+  T? get firstOrDefault => _root?.min;
+  T? get lastOrDefault => _root?.max;
+
+  T get first => firstOrDefault ?? (throw StateError('No element'));
+  T get last => lastOrDefault ?? (throw StateError('No element'));
+
+  T prev(T item) => _root.select(rank(item) - 1).item;
+  T next(T item) => _root.select(rank(item) + 1).item;
+
+  Treap<T> take(int n) => n < size ? Treap._(_root.split(_root.select(n).item).low) : this;
+  Treap<T> skip(int n) {
+    if (n >= size) return Treap(); // empty
+    final split = _root.split(_root.select(n).item);
+    return Treap._(split.high.union(split.middle));
+  }
+
   Treap<T> union(Treap<T> other) => Treap._(_root.union(other._root));
   Treap<T> intersection(Treap<T> other) => Treap._(_root.intersection(other._root));
   Treap<T> difference(Treap<T> other) => Treap._(_root.difference(other._root));
