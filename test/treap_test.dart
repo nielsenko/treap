@@ -6,15 +6,13 @@ import 'package:test/test.dart';
 
 void main() {
   group('Treap', () {
-    test('insert, erase, build', () {
+    test('add, erase, build', () {
       final x = Treap<num>() + 1;
-      final y = x.insert(1);
-      expect(x, y);
-      final z = y.upsert(1);
-      expect(y, isNot(z)); // upsert gives new Treap, even for existing items
+      final y = x.add(1);
+      expect(x, isNot(y)); // add gives new Treap, even for existing items
 
       // Be aware, that chaining with .. operator probably don't do what you want
-      expect((x..insert(2)..insert(3)).values, [1]);
+      expect((x..add(2)..add(3)).values, [1]);
 
       final big = Treap<num>.build([9, 8, 7, 6, 1, 2, 3, 4, 5]..shuffle());
       expect(big.values, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -33,7 +31,7 @@ void main() {
 //      expect(x.difference(y).values, ['foo']);
       expect((x & y).values, ['bar']);
       expect((x | y).values, ['bar', 'foo', 'mitzvah']);
-//      expect((x - y).values, ['foo']);
+      expect((x - y).values, ['foo']);
     });
 
     test('rank, select', () {
