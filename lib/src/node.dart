@@ -72,12 +72,12 @@ class Node<T extends Comparable<T>> {
   }
 
   /// throws if item not found
-  Node<T> findByRank(int rank) {
+  Node<T> select(int rank) {
     if (rank < 0 || rank >= _size) throw Error(); // TODO: Choose error!
     final l = size(left);
-    if (rank < l) return left!.findByRank(rank); // 0 < rank < l implies left != null
+    if (rank < l) return left!.select(rank); // 0 < rank < l implies left != null
     if (rank == l) return this;
-    return right!.findByRank(rank - l - 1);
+    return right!.select(rank - l - 1);
   }
 
   Node<T>? delete(T dead) {

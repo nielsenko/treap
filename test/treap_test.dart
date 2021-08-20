@@ -41,11 +41,11 @@ void main() {
       expect(treap.union(Treap('bar')), Treap.build(['foo', 'bar']));
     }, skip: true);
 
-    test('rank, findByRank', () {
+    test('rank, select', () {
       final top = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
       expect(top.iterate(), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(top.iterate().map((i) => top.rank(i)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.findByRank(i) == i), isTrue);
+      expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.select(i) == i), isTrue);
     });
   });
 
@@ -83,13 +83,13 @@ void main() {
       expect(forth.delete(2)!.inOrder().map((n) => n.item), [0, 1, 3]);
     });
 
-    test('rank, findByRank', () {
+    test('rank, select', () {
       final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold<Node<num>>(node(0), (acc, i) => acc.upsert(node(i)));
       expect(top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(top.inOrder().map((n) => top.rank(n.item)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(top.rank(-1), 0); // -1 goes before all
       expect(top.rank(100), 10); // 100 goes after all
-      expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.findByRank(i).item == i), isTrue);
+      expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.select(i).item == i), isTrue);
     });
   });
 }

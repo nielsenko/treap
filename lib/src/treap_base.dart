@@ -20,9 +20,9 @@ class Treap<T extends Comparable<T>> {
 
   T? find(T item) => _node?.find(item)?.item;
 
-  int rank(T item) => _node!.rank(item);
+  int rank(T item) => _node?.rank(item) ?? 0;
 
-  T findByRank(int rank) => _node!.findByRank(rank).item;
+  T select(int rank) => _node!.select(rank).item;
 
   bool has(T item) => find(item) != null;
 
