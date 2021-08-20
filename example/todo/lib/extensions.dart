@@ -30,7 +30,7 @@ extension DateTimeEx on DateTime {
     int? hours,
     int? minutes,
   }) =>
-      this.copyWidth(
+      copyWidth(
         year: year + (years ?? 0),
         month: month + (months ?? 0),
         day: day + (days ?? 0),
