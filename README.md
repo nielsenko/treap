@@ -28,3 +28,7 @@ main() {
 ```
 
 For something more significant see the [todo](example/todo/) flutter app
+
+## Status
+
+[![codecov](https://codecov.io/gh/nielsenko/treap/branch/master/graph/badge.svg?token=JI1PHY21A5)](https://codecov.io/gh/nielsenko/treap)
