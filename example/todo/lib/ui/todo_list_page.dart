@@ -3,6 +3,7 @@ import 'package:treap/treap.dart';
 
 import '../domain/history.dart';
 import '../domain/task.dart';
+import '../extensions.dart';
 import 'edit_task_page.dart';
 import 'task_tile.dart';
 
@@ -58,7 +59,7 @@ class _TodoListPageState extends State<TodoListPage> {
     _updateList(() {
       history.change((tl) {
         final id = ++count;
-        final task = Task(id, 'Task #$count', DateTime.now(), const Duration(hours: 2), false);
+        final task = Task(id, 'Task #$count', DateTime.now().offset(hours: 3), const Duration(hours: 2), false);
         return tl.addOrUpdate(task);
       });
     });
