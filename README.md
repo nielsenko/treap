@@ -1,19 +1,28 @@
-A library for Dart developers.
+A library implementing a persistent treap data structure for Dart developers.
 
 ## Usage
 
 A simple usage example:
 
 ```dart
+import 'package:test/test.dart';
 import 'package:treap/treap.dart';
 
 main() {
-  var awesome = new Awesome();
+  group('Treap', () {
+    test('set algebra', () {
+      final rnd = Random(42);
+      const max = 1000;
+      final x = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
+      final y = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
+
+      final tx = Treap<num>.build(x);
+      final ty = Treap<num>.build(y);
+
+      expect((tx | ty).values, x.union(y));
+      expect((tx & ty).values, x.intersection(y));
+      expect((tx - ty).values, x.difference(y));
+    });
+  });
 }
 ```
-
-## Features and bugs
-
-Please file feature requests and bugs at the [issue tracker][tracker].
-
-[tracker]: http://example.com/issues/replaceme
