@@ -10,6 +10,7 @@ class MyApp extends StatelessWidget {
     final title = 'Todo';
     return Material(
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: title,
         theme: ThemeData(
           primarySwatch: Colors.blue,

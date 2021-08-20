@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:treap/treap.dart';
 
@@ -99,10 +100,9 @@ class _TodoListPageState extends State<TodoListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: AnimatedList(
@@ -147,17 +147,6 @@ class _TodoListPageState extends State<TodoListPage> {
               },
             ),
           ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(width: 16),
-              Text('Show completed'),
-              Switch(
-                value: showCompleted,
-                onChanged: _setShowCompletion,
-              ),
-            ],
-          ),
           _buildUndoRedo(context),
         ],
       ),
@@ -176,10 +165,20 @@ class _TodoListPageState extends State<TodoListPage> {
       child: max > 0
           ? Row(
               children: [
-                const SizedBox(width: 16),
-                IconButton(
-                  onPressed: history.canUndo ? () => _updateList(() => history.undo()) : null,
-                  icon: Icon(Icons.undo),
+                Tooltip(
+                  message: 'Show completed task',
+                  child: Switch(
+                    value: showCompleted,
+                    onChanged: _setShowCompletion,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Tooltip(
+                  message: 'Undo',
+                  child: IconButton(
+                    onPressed: history.canUndo ? () => _updateList(() => history.undo()) : null,
+                    icon: Icon(Icons.undo),
+                  ),
                 ),
                 Expanded(
                   child: SliderTheme(
@@ -192,23 +191,29 @@ class _TodoListPageState extends State<TodoListPage> {
                       valueIndicatorShape: PaddleSliderValueIndicatorShape(),
                       valueIndicatorTextStyle: TextStyle(color: Colors.white),
                     ),
-                    child: Slider(
-                      value: history.current.toDouble(),
-                      label: '${history.current}',
-                      min: 0,
-                      max: max.toDouble(),
-                      divisions: max,
-                      onChanged: (v) {
-                        _updateList(() {
-                          history.current = v.toInt();
-                        });
-                      },
+                    child: Tooltip(
+                      message: 'Select version',
+                      child: Slider(
+                        value: history.current.toDouble(),
+                        label: '${history.current}',
+                        min: 0,
+                        max: max.toDouble(),
+                        divisions: max,
+                        onChanged: (v) {
+                          _updateList(() {
+                            history.current = v.toInt();
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: history.canRedo ? () => _updateList(() => history.redo()) : null,
-                  icon: Icon(Icons.redo),
+                Tooltip(
+                  message: 'Redo',
+                  child: IconButton(
+                    onPressed: history.canRedo ? () => _updateList(() => history.redo()) : null,
+                    icon: Icon(Icons.redo),
+                  ),
                 ),
                 const SizedBox(width: 96), // leave room for FAB
               ],

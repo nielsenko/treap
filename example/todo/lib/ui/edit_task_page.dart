@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../domain/task.dart';
 import '../extensions.dart';
+import 'task_hero.dart';
 
 class EditTaskPage extends StatefulWidget {
   final Task task;
@@ -69,45 +70,39 @@ class _EditTaskPageState extends State<EditTaskPage> {
       appBar: AppBar(
         title: Text('Edit'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Hero(
-              tag: task,
-              child: CircleAvatar(
-                radius: 100,
-                child: Text(task.id.toString()),
+      body: ListView(
+        children: [
+          TaskHero(
+            task: task,
+            radius: 80,
+          ),
+          TextField(
+            controller: _nameController,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Name',
+              hintText: 'Enter a descriptive name for the task',
+            ),
+          ),
+          Row(
+            children: [
+              OutlinedButton(
+                child: Text('${_editedTask.due.yMdhm}'),
+                onPressed: () => _selectDate(context),
               ),
-            ),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Name',
-                hintText: 'Enter a descriptive name for the task',
+              const SizedBox(width: 8),
+              OutlinedButton(
+                child: Text('${TimeOfDay.fromDateTime(_editedTask.due).hm}'),
+                onPressed: () => _selectTime(context),
               ),
-            ),
-            Row(
-              children: [
-                OutlinedButton(
-                  child: Text('${_editedTask.due.yMdhm}'),
-                  onPressed: () => _selectDate(context),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  child: Text('${TimeOfDay.fromDateTime(_editedTask.due).hm}'),
-                  onPressed: () => _selectTime(context),
-                ),
-                const Spacer(),
-                ElevatedButton(
-                  onPressed: () => _submit(context),
-                  child: Text('Save'),
-                ),
-              ],
-            ),
-          ],
-        ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: () => _submit(context),
+                child: Text('Save'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
