@@ -23,6 +23,27 @@ void main() {
       expect(x, isNot(w)); // equal items does not imply equality
     });
 
+    test('find, has, rank, select', () {
+      const max = 1000;
+      final items = [for (int i = 0; i < max; ++i) i]..shuffle();
+      final t = Treap<num>.build(items);
+      for (final i in items) {
+        expect(t.find(i), isNotNull);
+        expect(t.rank(t.find(i)!), i);
+        expect(t.has(i), isTrue);
+        expect(t[t.rank(i)], i);
+      }
+      final foreigners = [for (int i = max; i < 2 * max; ++i) i]..shuffle();
+      for (final i in foreigners) {
+        expect(t.find(i), isNull);
+        expect(t.rank(i), max);
+        expect(t.has(i), isFalse);
+        expect(() => t[t.rank(i)], throwsRangeError);
+      }
+      final empty = items.fold<Treap<num>>(t, (acc, i) => acc.erase(i));
+      expect(empty.isEmpty, isTrue);
+    });
+
     test('union, intersect, difference', () {
       final x = Treap.build(['foo', 'bar']);
       final y = Treap.build(['bar', 'mitzvah']);

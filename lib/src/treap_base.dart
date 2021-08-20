@@ -1,4 +1,8 @@
+import 'dart:math';
+
 import 'node.dart';
+
+final _rnd = Random(42);
 
 class Treap<T extends Comparable<T>> {
   final Node<T>? _root;
@@ -10,7 +14,7 @@ class Treap<T extends Comparable<T>> {
   // The advantage is, this is simpler, and it works even in the unsorted case.
   factory Treap.build(Iterable<T> items) => items.fold(Treap(), (acc, i) => acc.add(i));
 
-  Treap<T> add(T item) => Treap<T>._(_root.add(Node<T>(item, item.hashCode)));
+  Treap<T> add(T item) => Treap<T>._(_root.add(Node<T>(item, _rnd.nextInt(1 << 32))));
 
   Treap<T> erase(T item) => Treap._(_root.erase(item));
 
