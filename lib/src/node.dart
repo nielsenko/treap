@@ -166,7 +166,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
 
   Node<T>? union(Node<T>? other) {
     final self = this;
-    if (self == null) return other;
+    if (self == null) return other; // {} | B == B
     final s = other.split(self.item);
     return Split(
       self.left.union(s.low),
@@ -177,23 +177,23 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
 
   Node<T>? intersect(Node<T>? other) {
     final self = this;
-    if (self == null || other == null) return null;
+    if (self == null || other == null) return null; // {} & B == A & {} == {}
     final s = other.split(self.item);
     return Split(
       self.left.intersect(s.low),
-      s.middle == null ? null : self,
+      s.middle,
       self.right.intersect(s.high),
     ).join();
   }
 
   Node<T>? difference(Node<T>? other) {
     final self = this;
-    if (self == null) return null;
-    if (other == null) return self;
+    if (self == null) return null; // {} - B == {}
+    if (other == null) return self; // A - {} == A
     final s = other.split(self.item);
     return Split(
       self.left.difference(s.low),
-      null,
+      s.middle == null ? self : null,
       self.right.difference(s.high),
     ).join();
   }

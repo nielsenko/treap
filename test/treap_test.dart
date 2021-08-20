@@ -49,10 +49,24 @@ void main() {
       final y = Treap.build(['bar', 'mitzvah']);
       expect(x.intersect(y).values, ['bar']);
       expect(x.union(y).values, ['bar', 'foo', 'mitzvah']);
-//      expect(x.difference(y).values, ['foo']);
+      expect(x.difference(y).values, ['foo']);
       expect((x & y).values, ['bar']);
       expect((x | y).values, ['bar', 'foo', 'mitzvah']);
       expect((x - y).values, ['foo']);
+    });
+
+    test('union', () {
+      final rnd = Random(42);
+      const max = 1000;
+      final x = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
+      final y = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
+
+      final tx = Treap<num>.build(x);
+      final ty = Treap<num>.build(y);
+
+      expect((tx | ty).values, x.union(y));
+      expect((tx & ty).values, x.intersection(y));
+      expect((tx - ty).values, x.difference(y));
     });
 
     test('rank, select', () {
