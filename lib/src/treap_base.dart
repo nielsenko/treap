@@ -20,6 +20,8 @@ class Treap<T extends Comparable<T>> {
 
   bool get isEmpty => _root == null;
 
+  int get size => _root.size;
+
   T? find(T item) => _root.find(item)?.item;
   bool has(T item) => find(item) != null;
 
