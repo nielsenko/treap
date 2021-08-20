@@ -15,6 +15,7 @@ class EditTaskPage extends StatefulWidget {
 
 class _EditTaskPageState extends State<EditTaskPage> {
   late Task _editedTask;
+  final _focusNode = FocusNode();
   final _nameController = TextEditingController();
 
   Future<void> _selectTime(BuildContext context) async {
@@ -55,6 +56,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
     super.initState();
     _editedTask = widget.task.copyWith();
     _nameController.text = _editedTask.name;
+    _focusNode.requestFocus();
   }
 
   @override
@@ -77,6 +79,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
             radius: 80,
           ),
           TextField(
+            focusNode: _focusNode,
             controller: _nameController,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
