@@ -38,7 +38,7 @@ class _TodoListPageState extends State<TodoListPage> {
           index,
           (context, animation) {
             return TaskTile(
-              key: Key(task.name),
+              key: ValueKey(task.id),
               task: task,
               onCompletionChanged: (v) => _setCompletion(task, v),
               animation: animation,
@@ -112,6 +112,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 }
                 final task = tasks[index];
                 return TaskTile(
+                  key: ValueKey(task.id),
                   task: task,
                   onCompletionChanged: (v) => _setCompletion(task, v),
                   onDismissed: (d) => _removeTask(task),

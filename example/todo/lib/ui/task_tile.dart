@@ -24,10 +24,10 @@ class TaskTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      key: Key(task.name),
+      key: key,
       duration: animationDuration,
       child: Dismissible(
-        key: Key(task.name),
+        key: key ?? ValueKey(task.id),
         background: Container(
           color: Colors.red,
           child: Center(
