@@ -22,6 +22,26 @@ jobs:
       - name: Analyze project source
         run: dart analyze --fatal-infos lib/
 
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: subosito/flutter-action@v1
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests and generate coverage
+        # Cheat and user flutter instead of dart for coverage test, 
+        # as it can generate lcov files directly
+        run: flutter test --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage/lcov.info
+
   test:
     runs-on: ${{ matrix.os }}
     strategy:
