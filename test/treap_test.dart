@@ -44,10 +44,10 @@ void main() {
       expect(empty.isEmpty, isTrue);
     });
 
-    test('union, intersect, difference', () {
+    test('union, intersection, difference', () {
       final x = Treap.build(['foo', 'bar']);
       final y = Treap.build(['bar', 'mitzvah']);
-      expect(x.intersect(y).values, ['bar']);
+      expect(x.intersection(y).values, ['bar']);
       expect(x.union(y).values, ['bar', 'foo', 'mitzvah']);
       expect(x.difference(y).values, ['foo']);
       expect((x & y).values, ['bar']);

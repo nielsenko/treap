@@ -30,12 +30,12 @@ class Treap<T extends Comparable<T>> {
   Iterable<T> get values => _root.values;
 
   Treap<T> union(Treap<T> other) => Treap._(_root.union(other._root));
-  Treap<T> intersect(Treap<T> other) => Treap._(_root.intersect(other._root));
+  Treap<T> intersection(Treap<T> other) => Treap._(_root.intersection(other._root));
   Treap<T> difference(Treap<T> other) => Treap._(_root.difference(other._root));
 
   Treap<T> operator +(T item) => add(item);
   Treap<T> operator |(Treap<T> other) => union(other);
-  Treap<T> operator &(Treap<T> other) => intersect(other);
+  Treap<T> operator &(Treap<T> other) => intersection(other);
   Treap<T> operator -(Treap<T> other) => difference(other);
   T operator [](int i) => select(i);
 }

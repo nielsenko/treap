@@ -175,14 +175,14 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
     ).join();
   }
 
-  Node<T>? intersect(Node<T>? other) {
+  Node<T>? intersection(Node<T>? other) {
     final self = this;
     if (self == null || other == null) return null; // {} & B == A & {} == {}
     final s = other.split(self.item);
     return Split(
-      self.left.intersect(s.low),
+      self.left.intersection(s.low),
       s.middle,
-      self.right.intersect(s.high),
+      self.right.intersection(s.high),
     ).join();
   }
 
