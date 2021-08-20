@@ -5,6 +5,8 @@ class Node<T extends Comparable<T>> {
   final Node<T>? left, right;
 
   Node(this.item, this.priority, {this.left, this.right}) : _size = 1 + size(left) + size(right);
+  Node<T> changeLeft(Node<T>? left) => Node(item, priority, left: left, right: right);
+  Node<T> changeRight(Node<T>? right) => Node(item, priority, left: left, right: right);
 
   static int size(Node? n) => n?._size ?? 0;
 
@@ -17,9 +19,8 @@ class Node<T extends Comparable<T>> {
   /// throws if no left child exists
   Node<T> spinRight() {
     final l = left!;
-    final x = l.left;
     final y = l.right;
-    return Node(l.item, l.priority, left: x, right: Node(item, priority, left: y, right: right));
+    return l.changeRight(changeLeft(y));
   }
 
   //     t            R
@@ -32,8 +33,7 @@ class Node<T extends Comparable<T>> {
   Node<T> spinLeft() {
     final r = right!;
     final x = r.left;
-    final y = r.right;
-    return Node(r.item, r.priority, right: y, left: Node(item, priority, left: left, right: x));
+    return r.changeLeft(changeRight(x));
   }
 
   Node<T> upsert(Node<T> child) {
