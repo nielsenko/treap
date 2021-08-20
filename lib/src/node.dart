@@ -1,14 +1,16 @@
+extension NodeEx<T extends Comparable<T>> on Node<T>? {
+  int get size => this?._size ?? 0;
+}
+
 class Node<T extends Comparable<T>> {
   final T item;
   final int priority;
   final int _size;
   final Node<T>? left, right;
 
-  Node(this.item, this.priority, {this.left, this.right}) : _size = 1 + size(left) + size(right);
+  Node(this.item, this.priority, {this.left, this.right}) : _size = 1 + left.size + right.size;
   Node<T> changeLeft(Node<T>? left) => Node(item, priority, left: left, right: right);
   Node<T> changeRight(Node<T>? right) => Node(item, priority, left: left, right: right);
-
-  static int size(Node? n) => n?._size ?? 0;
 
   //     t          L
   //    / \        / \
@@ -66,7 +68,7 @@ class Node<T extends Comparable<T>> {
   int rank(T item) {
     final order = item.compareTo(this.item);
     if (order < 0) return left?.rank(item) ?? 0;
-    final l = size(left);
+    final l = left.size;
     if (order > 0) return l + 1 + (right?.rank(item) ?? 0);
     return l; // order == 0
   }
@@ -74,7 +76,7 @@ class Node<T extends Comparable<T>> {
   /// throws if item not found
   Node<T> select(int rank) {
     if (rank < 0 || rank >= _size) throw Error(); // TODO: Choose error!
-    final l = size(left);
+    final l = left.size;
     if (rank < l) return left!.select(rank); // 0 < rank < l implies left != null
     if (rank == l) return this;
     return right!.select(rank - l - 1);
