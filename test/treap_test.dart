@@ -6,8 +6,8 @@ import 'package:test/test.dart';
 
 void main() {
   group('Treap', () {
-    test('insert, erase, build, iterate', () {
-      final x = Treap<num>.empty().insert(1);
+    test('insert, erase, build', () {
+      final x = Treap<num>() + 1;
       final y = x.insert(1);
       expect(x, y);
       final z = y.upsert(1);
@@ -21,29 +21,19 @@ void main() {
 
       expect(big.erase(1).erase(0).erase(5).values, [2, 3, 4, 6, 7, 8, 9]);
 
-      final w = Treap<num>(1);
+      final w = Treap<num>.build([1]);
       expect(x, isNot(w)); // equal items does not imply equality
     });
 
-    test('intersect', () {
-      expect(
-        Treap.build(['foo', 'bar']).intersect(Treap('bar')).values,
-        Treap('bar').values,
-      );
-    });
-
-    test('union', () {
-      expect(
-        Treap('foo').union(Treap('bar')).values,
-        Treap.build(['foo', 'bar']).values,
-      );
-    });
-
-    test('difference', () {
-      expect(
-        Treap.build(['foo', 'bar']).difference(Treap('foo')).values,
-        Treap('bar').values,
-      );
+    test('union, intersect, difference', () {
+      final x = Treap.build(['foo', 'bar']);
+      final y = Treap.build(['bar', 'mitzvah']);
+      expect(x.intersect(y).values, ['bar']);
+      expect(x.union(y).values, ['bar', 'foo', 'mitzvah']);
+//      expect(x.difference(y).values, ['foo']);
+      expect((x & y).values, ['bar']);
+      expect((x | y).values, ['bar', 'foo', 'mitzvah']);
+//      expect((x - y).values, ['foo']);
     });
 
     test('rank, select', () {
@@ -52,19 +42,25 @@ void main() {
       expect(top.values.map((i) => top.rank(i)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.select(i) == i), isTrue);
     });
+
+    test('empty', () {
+      final t = Treap<String>();
+      expect(t.isEmpty, isTrue);
+      expect(t.values, []);
+    });
   });
 
   group('Node', () {
     final rnd = Random(42 ^ 42);
     Node<num> node(num value) => Node<num>(value, rnd.nextInt(1 << 32));
 
-    test('upsert, find, erase, inOrder', () {
+    test('add, find, erase, inOrder', () {
       final first = node(1);
-      final again = first.fastAdd(node(1));
-      final second = first.fastAdd(node(2));
-      final third = second.fastAdd(node(3));
-      final another = third.fastAdd(node(3));
-      final forth = third.fastAdd(node(0));
+      final again = first.add(node(1));
+      final second = first.add(node(2));
+      final third = second.add(node(3));
+      final another = third.add(node(3));
+      final forth = third.add(node(0));
 
       expect(first.inOrder().map((n) => n.item), [1]);
       expect(again.inOrder().map((n) => n.item), [1]);
@@ -81,15 +77,15 @@ void main() {
       expect(second.find(1), isNotNull);
       expect(second.find(2), isNotNull);
 
-      final fifth = forth.fastErase(0);
+      final fifth = forth.erase(0);
       expect(fifth!.inOrder().map((n) => n.item), [1, 2, 3]);
       expect(identical(third, fifth), false);
 
-      expect(forth.fastErase(2)!.inOrder().map((n) => n.item), [0, 1, 3]);
+      expect(forth.erase(2)!.inOrder().map((n) => n.item), [0, 1, 3]);
     });
 
     test('rank, select', () {
-      final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold<Node<num>>(node(0), (acc, i) => acc.fastAdd(node(i)));
+      final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold<Node<num>>(node(0), (acc, i) => acc.add(node(i)));
       expect(top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(top.inOrder().map((n) => top.rank(n.item)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(top.rank(-1), 0); // -1 goes before all

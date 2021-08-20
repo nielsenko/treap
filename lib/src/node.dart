@@ -6,40 +6,6 @@ class Node<T extends Comparable<T>> {
 
   Node(this.item, this.priority, {this.left, this.right}) : _size = 1 + left.size + right.size;
 
-  Node<T> fastAdd(Node<T> child) {
-    Node<T> root;
-    final order = child.item.compareTo(item);
-    if (order < 0) {
-      // add to left subtree
-      root = Node(item, priority, left: left?.fastAdd(child) ?? child, right: right);
-      if (root.priority < root.left!.priority) root = root.spinRight(); // maintain heap order
-    } else if (order > 0) {
-      // add to right subtree
-      root = Node(item, priority, left: left, right: right?.fastAdd(child) ?? child);
-      if (root.priority < root.right!.priority) root = root.spinLeft(); // maintain heap order
-    } else {
-      // when order == 0, make a copy and upsert item from child
-      // (even though they compare equal they may not be identical)
-      root = Node(child.item, priority, left: left, right: right);
-    }
-    return root;
-  }
-
-  Node<T>? fastErase(T dead) {
-    final order = dead.compareTo(item);
-    if (order < 0) return withLeft(left?.fastErase(dead));
-    if (order > 0) return withRight(right?.fastErase(dead));
-    // order == 0
-    final l = left;
-    final r = right;
-    if (l != null && r != null) {
-      // two children
-      final root = l.priority < r.priority ? spinLeft() : spinRight(); // maintain heap order
-      return root.fastErase(dead);
-    }
-    return l ?? r; // one or no children
-  }
-
   Iterable<Node<T>> inOrder() sync* {
     yield* left?.inOrder() ?? [];
     yield this;
@@ -85,7 +51,6 @@ class Node<T extends Comparable<T>> {
   }
 
   Node<T> withLeft(Node<T>? left) => Node(item, priority, left: left, right: right);
-
   Node<T> withRight(Node<T>? right) => Node(item, priority, left: left, right: right);
 }
 
@@ -98,13 +63,11 @@ class Split<T extends Comparable<T>> {
   Node<T>? join() {
     final p = pivot;
     if (p == null) return low.join(high);
-    return low.join(p.join(high));
+    return low.join(Node(p.item, p.priority).join(high));
   }
 
   Split<T> withHigh(Node<T>? high) => Split(low, pivot, high);
   Split<T> withLow(Node<T>? low) => Split(low, pivot, high);
-
-  Split<T> withPivot(Node<T>? pivot) => Split(low, pivot, high);
 }
 
 extension NodeEx<T extends Comparable<T>> on Node<T>? {
@@ -127,6 +90,9 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
 
   Node<T>? join(Node<T>? other) {
     final self = this;
+    assert(values.fold<bool>(true, (acc, i) => acc && other.find(i) == null));
+    assert(values.fold<bool>(true, (acc, i) => acc && other.rank(i) == 0));
+    assert(other.values.fold<bool>(true, (acc, i) => acc && self.find(i) == null));
     if (self != null && other != null) {
       // two - ensure heap order
       if (self.priority > other.priority) return self.withRight(self.right.join(other));
@@ -135,22 +101,53 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
     return self ?? other; // zero or one
   }
 
-  Node<T> add(Node<T> node) {
-    final self = this;
-    if (self == null) return node;
-    return self.fastAdd(node);
-    // Instead of:
+  Node<T> add(Node<T> child) {
+    // elegant, but less efficient
     // final s = split(node.item);
     // return s.withPivot(node).join()!;
+
+    final self = this;
+    if (self == null) return child;
+
+    Node<T> root;
+    final order = child.item.compareTo(self.item);
+    if (order < 0) {
+      // add to left subtree
+      root = self.withLeft(self.left.add(child));
+      if (root.priority < root.left!.priority) root = root.spinRight(); // maintain heap order
+    } else if (order > 0) {
+      // add to right subtree
+      root = self.withRight(self.right.add(child));
+      if (root.priority < root.right!.priority) root = root.spinLeft(); // maintain heap order
+    } else {
+      // when order == 0, make a copy and upsert item from child
+      // (even though they compare equal they may not be identical)
+      root = Node(child.item, self.priority, left: self.left, right: self.right);
+    }
+    return root;
   }
 
   Node<T>? erase(T dead) {
-    final self = this;
-    if (self == null) return null;
-    return self.fastErase(dead);
-    // Instead of:
+    // elegant, but less efficient
     // final s = split(dead);
     // return s.withPivot(null).join();
+
+    final self = this;
+    if (self == null) return null;
+
+    final l = self.left;
+    final r = self.right;
+
+    final order = dead.compareTo(self.item);
+    if (order < 0) return self.withLeft(l.erase(dead));
+    if (order > 0) return self.withRight(r.erase(dead));
+    // order == 0
+    if (l != null && r != null) {
+      // two children
+      final root = l.priority < r.priority ? self.spinLeft() : self.spinRight(); // maintain heap order
+      return root.erase(dead);
+    }
+    return l ?? r; // one or no children
   }
 
   Node<T>? union(Node<T>? other) {
