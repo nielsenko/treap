@@ -16,6 +16,8 @@ class TodoListPage extends StatefulWidget {
   _TodoListPageState createState() => _TodoListPageState();
 }
 
+final opacityCurve = const Interval(0.0, 0.75, curve: Curves.fastOutSlowIn);
+
 class _TodoListPageState extends State<TodoListPage> {
   final listKey = GlobalKey<AnimatedListState>();
   final history = History();
@@ -122,8 +124,19 @@ class _TodoListPageState extends State<TodoListPage> {
                       task,
                       await Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (ctx) => EditTaskPage(task: task),
+                            PageRouteBuilder<Task>(
+                              pageBuilder: (context, animation, secondaryAnimation) {
+                                return AnimatedBuilder(
+                                  animation: animation,
+                                  builder: (context, child) {
+                                    return Opacity(
+                                      opacity: opacityCurve.transform(animation.value),
+                                      child: child,
+                                    );
+                                  },
+                                  child: EditTaskPage(task: task),
+                                );
+                              },
                             ),
                           ) ??
                           task,
