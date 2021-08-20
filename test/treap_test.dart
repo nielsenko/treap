@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('Treap', () {
-    test('insert, delete, build, iterate', () {
+    test('insert, erase, build, iterate', () {
       final x = Treap<num>.empty().insert(1);
       final y = x.insert(1);
       expect(x, y);
@@ -19,7 +19,7 @@ void main() {
       final big = Treap<num>.build([9, 8, 7, 6, 1, 2, 3, 4, 5]..shuffle());
       expect(big.iterate(), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
-      expect(big.delete(1).delete(0).delete(5).iterate(), [2, 3, 4, 6, 7, 8, 9]);
+      expect(big.erase(1).erase(0).erase(5).iterate(), [2, 3, 4, 6, 7, 8, 9]);
 
       final w = Treap<num>(1);
       expect(x, isNot(w)); // equal items does not imply equality
@@ -53,7 +53,7 @@ void main() {
     final rnd = Random(42 ^ 42);
     Node<num> node(num value) => Node<num>(value, rnd.nextInt(1 << 32));
 
-    test('upsert, find, delete, inOrder', () {
+    test('upsert, find, erase, inOrder', () {
       final first = node(1);
       final again = first.upsert(node(1));
       final second = first.upsert(node(2));
@@ -76,11 +76,11 @@ void main() {
       expect(second.find(1), isNotNull);
       expect(second.find(2), isNotNull);
 
-      final fifth = forth.delete(0);
+      final fifth = forth.erase(0);
       expect(fifth!.inOrder().map((n) => n.item), [1, 2, 3]);
       expect(identical(third, fifth), false);
 
-      expect(forth.delete(2)!.inOrder().map((n) => n.item), [0, 1, 3]);
+      expect(forth.erase(2)!.inOrder().map((n) => n.item), [0, 1, 3]);
     });
 
     test('rank, select', () {

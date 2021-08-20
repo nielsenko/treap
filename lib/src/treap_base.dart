@@ -14,7 +14,7 @@ class Treap<T extends Comparable<T>> {
     return Treap<T>._(_node?.upsert(n) ?? n);
   }
 
-  Treap<T> delete(T item) => Treap._(_node?.delete(item));
+  Treap<T> erase(T item) => Treap._(_node?.erase(item));
 
   bool get isEmpty => _node == null;
 

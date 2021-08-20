@@ -80,17 +80,17 @@ class Node<T extends Comparable<T>> {
     return right!.select(rank - l - 1);
   }
 
-  Node<T>? delete(T dead) {
+  Node<T>? erase(T dead) {
     final order = dead.compareTo(item);
-    if (order < 0) return Node(item, priority, left: left?.delete(dead), right: right);
-    if (order > 0) return Node(item, priority, left: left, right: right?.delete(dead));
+    if (order < 0) return changeLeft(left?.erase(dead));
+    if (order > 0) return changeRight(right?.erase(dead));
     // order == 0
     final l = left;
     final r = right;
     if (l != null && r != null) {
       // two children
       final root = l.priority < r.priority ? spinLeft() : spinRight(); // maintain heap order
-      return root.delete(dead);
+      return root.erase(dead);
     }
     return l ?? r; // one or no children
   }
