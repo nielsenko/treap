@@ -65,9 +65,9 @@ class Node<T extends Comparable<T>> {
   /// zero-based, throws if item not found
   int rank(T item) {
     final order = item.compareTo(this.item);
-    if (order < 0) return left!.rank(item);
+    if (order < 0) return left?.rank(item) ?? 0;
     final l = size(left);
-    if (order > 0) return l + 1 + right!.rank(item);
+    if (order > 0) return l + 1 + (right?.rank(item) ?? 0);
     return l; // order == 0
   }
 

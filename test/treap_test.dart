@@ -87,6 +87,8 @@ void main() {
       final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold<Node<num>>(node(0), (acc, i) => acc.upsert(node(i)));
       expect(top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(top.inOrder().map((n) => top.rank(n.item)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(top.rank(-1), 0); // -1 goes before all
+      expect(top.rank(100), 10); // 100 goes after all
       expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.findByRank(i).item == i), isTrue);
     });
   });
