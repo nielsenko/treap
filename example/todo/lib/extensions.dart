@@ -6,7 +6,7 @@ extension IntEx on int {
 }
 
 extension DateTimeEx on DateTime {
-  String get yMdhm => '$year-$month-$day ${hour.two}:${minute.two}';
+  String get yMdhm => '$year-${month.two}-${day.two} ${hour.two}:${minute.two}';
 
   DateTime copyWidth({
     int? year,
