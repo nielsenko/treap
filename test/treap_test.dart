@@ -13,7 +13,10 @@ void main() {
         expect(x, isNot(y)); // add gives new Treap, even for existing items
 
         // Be aware, that chaining with .. operator probably don't do what you want
-        expect((x..add(2)..add(3)).values, [1]);
+        x
+          ..add(2)
+          ..add(3);
+        expect(x.values, [1]);
 
         final big = Treap<num>.build([9, 8, 7, 6, 1, 2, 3, 4, 5]..shuffle());
         expect(big.values, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
