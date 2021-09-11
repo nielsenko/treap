@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 extension IntEx on int {
-  String pad(int digits) => '${toString().padLeft(digits, '0')}';
+  String pad(int digits) => toString().padLeft(digits, '0');
   String get two => pad(2);
 }
 

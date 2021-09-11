@@ -91,12 +91,12 @@ class _EditTaskPageState extends State<EditTaskPage> {
             children: [
               OutlinedButton(
                 onPressed: () => _selectDate(context),
-                child: Text('${_editedTask.due.yMdhm}'),
+                child: Text(_editedTask.due.yMdhm),
               ),
               const SizedBox(width: 8),
               OutlinedButton(
                 onPressed: () => _selectTime(context),
-                child: Text('${TimeOfDay.fromDateTime(_editedTask.due).hm}'),
+                child: Text(TimeOfDay.fromDateTime(_editedTask.due).hm),
               ),
               const Spacer(),
               ElevatedButton(
