@@ -13,7 +13,7 @@ class TodoListPage extends StatefulWidget {
   TodoListPage({Key? key, required this.title}) : super(key: key);
 
   @override
-  _TodoListPageState createState() => _TodoListPageState();
+  State<TodoListPage> createState() => _TodoListPageState();
 }
 
 final opacityCurve = const Interval(0.0, 0.75, curve: Curves.fastOutSlowIn);

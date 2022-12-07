@@ -10,7 +10,7 @@ class EditTaskPage extends StatefulWidget {
   const EditTaskPage({Key? key, required this.task}) : super(key: key);
 
   @override
-  _EditTaskPageState createState() => _EditTaskPageState();
+  State<EditTaskPage> createState() => _EditTaskPageState();
 }
 
 class _EditTaskPageState extends State<EditTaskPage> {
