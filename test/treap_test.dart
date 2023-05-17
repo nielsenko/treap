@@ -61,6 +61,11 @@ void main() {
         expect(top.values.map((i) => top.rank(i)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.select(i) == i), isTrue);
       });
+
+      test('select when empty', () {
+        final empty = Treap<num>();
+        expect(() => empty.select(0), throwsRangeError);
+      });
     });
 
     group('iterator', () {
