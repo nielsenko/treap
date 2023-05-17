@@ -33,6 +33,7 @@ void main() {
         expect(t.values, []);
       });
     });
+
     group('retrieval', () {
       test('find, has, rank, select', () {
         const max = 1000;
@@ -51,15 +52,19 @@ void main() {
           expect(t.has(i), isFalse);
           expect(() => t[t.rank(i)], throwsRangeError);
         }
-        final empty = items.fold<Treap<num>>(t, (acc, i) => acc.erase(i));
+        final empty = items.fold(t, (acc, i) => acc.erase(i));
         expect(empty.isEmpty, isTrue);
       });
 
       test('rank, select', () {
         final top = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
         expect(top.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        expect(top.values.map((i) => top.rank(i)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.select(i) == i), isTrue);
+        expect(
+            top.values.map((i) => top.rank(i)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        expect(
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                .fold(true, (acc, i) => acc && top.select(i) == i),
+            isTrue);
       });
 
       test('select when empty', () {
@@ -102,7 +107,8 @@ void main() {
         expect(single.first, single.firstOrDefault);
         expect(single.first, single.lastOrDefault);
 
-        final many = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final many =
+            Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
         expect(many.first, many.values.first);
         expect(many.first, 0);
         expect(many.last, many.values.last);
@@ -122,18 +128,25 @@ void main() {
     });
 
     group('set algebra', () {
-      test('union, intersection, difference', () {
-        final x = Treap.build(['foo', 'bar']);
-        final y = Treap.build(['bar', 'mitzvah']);
-        expect(x.intersection(y).values, ['bar']);
+      final x = Treap.build(['foo', 'bar']);
+      final y = Treap.build(['bar', 'mitzvah']);
+
+      test('union', () {
         expect(x.union(y).values, ['bar', 'foo', 'mitzvah']);
-        expect(x.difference(y).values, ['foo']);
-        expect((x & y).values, ['bar']);
         expect((x | y).values, ['bar', 'foo', 'mitzvah']);
+      });
+
+      test('intersection', () {
+        expect(x.intersection(y).values, ['bar']);
+        expect((x & y).values, ['bar']);
+      });
+
+      test('difference', () {
+        expect(x.difference(y).values, ['foo']);
         expect((x - y).values, ['foo']);
       });
 
-      test('union', () {
+      test('performance', () {
         final rnd = Random(42);
         const max = 1000;
         final x = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
@@ -184,12 +197,38 @@ void main() {
     });
 
     test('rank, select', () {
-      final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold<Node<num>>(node(0), (acc, i) => acc.add(node(i)));
+      final top = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+          .reversed
+          .fold(node(0), (acc, i) => acc.add(node(i)));
       expect(top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      expect(top.inOrder().map((n) => top.rank(n.item)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(top.inOrder().map((n) => top.rank(n.item)),
+          [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(top.rank(-1), 0); // -1 goes before all
       expect(top.rank(100), 10); // 100 goes after all
-      expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].fold<bool>(true, (acc, i) => acc && top.select(i).item == i), isTrue);
+      expect(
+          [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+              .fold(true, (acc, i) => acc && top.select(i).item == i),
+          isTrue);
+    });
+
+    test('preOrder, inOrder, postOrder', () {
+      // Deterministic shaped treap despite shuffle
+      final top = ([1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle()).fold(
+        Node<num>(0, 0),
+        (acc, i) => acc.add(Node(i, 5 - i)),
+      );
+      expect(
+        top.inOrder().map((n) => n.item),
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      );
+      expect(
+        top.preOrder().map((n) => n.item),
+        [1, 0, 2, 3, 4, 5, 6, 7, 8, 9],
+      );
+      expect(
+        top.postOrder().map((n) => n.item),
+        [0, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+      );
     });
   });
 }
