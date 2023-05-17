@@ -1,5 +1,9 @@
 name: treap
-description: A treap implementation in Dart.
+description: >-
+ A persistent treap for Dart.
+ 
+ A heap balanced randomized binary tree with efficient value semantics.
+ All operations are O(log n) worst case.
 
 version: 1.0.0
 homepage: https://github.com/nielsenko/treap

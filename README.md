@@ -27,7 +27,7 @@ main() {
 }
 ```
 
-For something more significant see the [todo](example/todo/) flutter app
+For something more significant see the [todo](example/) flutter app
 
 ## Status
 
