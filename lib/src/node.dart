@@ -25,32 +25,6 @@ class Node<T extends Comparable<T>> {
     yield* right?.preOrder() ?? [];
   }
 
-  //     t            R
-  //    / \          / \
-  //   l   r   =>   T   y
-  //      / \      / \
-  //     x   y    l   x
-  //
-  /// throws if no right child exists
-  Node<T> spinLeft() {
-    final r = right!;
-    final x = r.left;
-    return r.withLeft(withRight(x));
-  }
-
-  //     t          L
-  //    / \        / \
-  //   l   r  =>  x   T
-  //  / \            / \
-  // x   y          y   r
-  //
-  /// throws if no left child exists
-  Node<T> spinRight() {
-    final l = left!;
-    final y = l.right;
-    return l.withRight(withLeft(y));
-  }
-
   Node<T> withLeft(Node<T>? left) =>
       Node(item, priority, left: left, right: right);
   Node<T> withRight(Node<T>? right) =>
