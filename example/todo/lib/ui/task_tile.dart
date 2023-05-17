@@ -32,7 +32,10 @@ class TaskTile extends StatelessWidget {
         child: Center(
           child: Text(
             'You can always undo',
-            style: Theme.of(context).textTheme.headline5?.copyWith(color: Colors.white),
+            style: Theme.of(context)
+                .textTheme
+                .headline5
+                ?.copyWith(color: Colors.white),
           ),
         ),
       ),
@@ -55,7 +58,8 @@ class TaskTile extends StatelessWidget {
               title: Text(task.name),
               subtitle: Text('${task.due.yMdhm}\n${task.duration.hm}'),
               trailing: Tooltip(
-                message: 'Tap to ${task.completed ? 'undo completion' : 'complete'}',
+                message:
+                    'Tap to ${task.completed ? 'undo completion' : 'complete'}',
                 child: Checkbox(
                   value: task.completed,
                   onChanged: (v) => onCompletionChanged(v ?? false),

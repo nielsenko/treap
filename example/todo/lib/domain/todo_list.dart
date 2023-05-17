@@ -10,7 +10,8 @@ class TodoList {
   const TodoList._(this.all, this.uncompleted);
 
   TodoList addOrUpdate(Task t) {
-    return TodoList._(all.add(t), t.completed ? uncompleted.erase(t) : uncompleted.add(t));
+    return TodoList._(
+        all.add(t), t.completed ? uncompleted.erase(t) : uncompleted.add(t));
   }
 
   TodoList remove(Task t) {

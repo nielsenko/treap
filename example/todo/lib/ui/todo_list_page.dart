@@ -52,7 +52,8 @@ class _TodoListPageState extends State<TodoListPage> {
       }
       for (var task in (after - before).values) {
         final index = after.rank(task); // where it is
-        listKey.currentState?.insertItem(index); // animation handled by AnimatedList.itemBuilder itself
+        listKey.currentState?.insertItem(
+            index); // animation handled by AnimatedList.itemBuilder itself
       }
     });
   }
@@ -61,7 +62,8 @@ class _TodoListPageState extends State<TodoListPage> {
     _updateList(() {
       history.change((tl) {
         final id = ++count;
-        final task = Task(id, 'Task #$count', DateTime.now().offset(hours: 3), const Duration(hours: 2), false);
+        final task = Task(id, 'Task #$count', DateTime.now().offset(hours: 3),
+            const Duration(hours: 2), false);
         return tl.addOrUpdate(task);
       });
     });
@@ -70,7 +72,8 @@ class _TodoListPageState extends State<TodoListPage> {
   void _editTask(Task old, Task current) {
     _updateList(() {
       history.change((tl) {
-        return tl.remove(old).addOrUpdate(current); // remove first in case primary key is updated
+        return tl.remove(old).addOrUpdate(
+            current); // remove first in case primary key is updated
       });
     });
   }
@@ -124,12 +127,14 @@ class _TodoListPageState extends State<TodoListPage> {
                       await Navigator.push(
                             context,
                             PageRouteBuilder<Task>(
-                              pageBuilder: (context, animation, secondaryAnimation) {
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) {
                                 return AnimatedBuilder(
                                   animation: animation,
                                   builder: (context, child) {
                                     return Opacity(
-                                      opacity: opacityCurve.transform(animation.value),
+                                      opacity: opacityCurve
+                                          .transform(animation.value),
                                       child: child,
                                     );
                                   },
@@ -175,7 +180,9 @@ class _TodoListPageState extends State<TodoListPage> {
                 Tooltip(
                   message: 'Undo',
                   child: IconButton(
-                    onPressed: history.canUndo ? () => _updateList(() => history.undo()) : null,
+                    onPressed: history.canUndo
+                        ? () => _updateList(() => history.undo())
+                        : null,
                     icon: Icon(Icons.undo),
                   ),
                 ),
@@ -210,7 +217,9 @@ class _TodoListPageState extends State<TodoListPage> {
                 Tooltip(
                   message: 'Redo',
                   child: IconButton(
-                    onPressed: history.canRedo ? () => _updateList(() => history.redo()) : null,
+                    onPressed: history.canRedo
+                        ? () => _updateList(() => history.redo())
+                        : null,
                     icon: Icon(Icons.redo),
                   ),
                 ),

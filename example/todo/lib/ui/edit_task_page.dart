@@ -41,7 +41,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
     );
     if (picked == null) return;
     setState(() {
-      due = DateTime(picked.year, picked.month, picked.day, due.hour, due.minute);
+      due =
+          DateTime(picked.year, picked.month, picked.day, due.hour, due.minute);
       _editedTask = _editedTask.copyWith(due: due);
     });
   }
