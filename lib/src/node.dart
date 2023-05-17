@@ -61,34 +61,42 @@ class Node<T extends Comparable<T>> {
   T get max => right == null ? item : right!.max;
 }
 
-class Split<T extends Comparable<T>> {
-  final Node<T>? low, middle, high;
+// NOTE: Use inline class when available.
+// For now, use typedef + extension methods
+typedef Split<T extends Comparable<T>> = ({
+  Node<T>? low,
+  Node<T>? middle,
+  Node<T>? high,
+});
 
-  Split(this.low, Node<T>? middle, this.high)
-      : middle = middle?.withoutChildren() {
-    final m = middle;
-    final l = low;
-    final h = high;
-    assert(m == null || (h == null || m.item.compareTo(h.min) < 0));
-    assert(m == null || (l == null || l.max.compareTo(m.item) < 0));
-    assert((l == null || h == null) || l.max.compareTo(h.min) < 0);
-  }
-
-  const Split.empty()
-      : low = null,
-        middle = null,
-        high = null;
-
+extension<T extends Comparable<T>> on Split<T> {
+  Split<T> withLow(Node<T>? low) => (low: low, middle: middle, high: high);
+  Split<T> withMiddle(Node<T>? middle) =>
+      (low: low, middle: middle, high: high);
+  Split<T> withHigh(Node<T>? high) => (low: low, middle: middle, high: high);
   Node<T>? join() {
     final m = middle;
     if (m == null) return low.join(high);
     return low.join(m.join(high));
   }
+}
 
-  Split<T> withLow(Node<T>? low) => Split(low, middle, high);
-  Split<T> withMiddle(Node<T>? middle) =>
-      Split(low, middle, high); // coverage:ignore-line // not used
-  Split<T> withHigh(Node<T>? high) => Split(low, middle, high);
+Split<T> emptySplit<T extends Comparable<T>>() =>
+    const (low: null, middle: null, high: null);
+
+Split<T> newSplit<T extends Comparable<T>>(
+  Node<T>? low,
+  Node<T>? middle,
+  Node<T>? high,
+) {
+  final m = middle?.withoutChildren();
+  final l = low;
+  final h = high;
+  assert(m == null || (h == null || m.item.compareTo(h.min) < 0));
+  assert(m == null || (l == null || l.max.compareTo(m.item) < 0));
+  assert((l == null || h == null) || l.max.compareTo(h.min) < 0);
+
+  return (low: l, middle: m, high: h);
 }
 
 extension NodeEx<T extends Comparable<T>> on Node<T>? {
@@ -96,7 +104,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
 
   Split<T> split(T pivot) {
     final self = this;
-    if (self == null) return Split.empty();
+    if (self == null) return emptySplit<T>();
     final order = pivot.compareTo(self.item);
     if (order < 0) {
       final s = self.left.split(pivot);
@@ -106,7 +114,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
       final s = self.right.split(pivot);
       return s.withLow(self.withRight(s.low));
     }
-    return Split(self.left, self, self.right); // order == 0
+    return newSplit(self.left, self, self.right); // order == 0
   }
 
   Node<T>? join(Node<T>? other) {
@@ -130,7 +138,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
     final self = this;
     if (self == null) return other; // {} | B == B
     final s = other.split(self.item);
-    return Split(
+    return newSplit(
       self.left.union(s.low),
       self,
       self.right.union(s.high),
@@ -141,7 +149,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
     final self = this;
     if (self == null || other == null) return null; // {} & B == A & {} == {}
     final s = other.split(self.item);
-    return Split(
+    return newSplit(
       self.left.intersection(s.low),
       s.middle,
       self.right.intersection(s.high),
@@ -153,7 +161,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
     if (self == null) return null; // {} - B == {}
     if (other == null) return self; // A - {} == A
     final s = other.split(self.item);
-    return Split(
+    return newSplit(
       self.left.difference(s.low),
       s.middle == null ? self : null,
       self.right.difference(s.high),
