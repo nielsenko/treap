@@ -7,7 +7,7 @@ import 'package:todo/ui/task_tile.dart';
 void main() {
   testWidgets('Add task smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(const MyApp());
 
     expect(find.byType(TaskTile), findsNothing);
 

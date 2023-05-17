@@ -3,7 +3,7 @@ import 'todo_list.dart';
 typedef Command = TodoList Function(TodoList);
 
 class History {
-  var history = [TodoList()];
+  var history = [const TodoList()];
 
   var _current = 0;
   bool get canRedo => _current < history.length - 1;

@@ -71,7 +71,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
     final task = widget.task;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit'),
+        title: const Text('Edit'),
       ),
       body: ListView(
         children: [
@@ -82,7 +82,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
           TextField(
             focusNode: _focusNode,
             controller: _nameController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: OutlineInputBorder(),
               labelText: 'Name',
               hintText: 'Enter a descriptive name for the task',
@@ -102,7 +102,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
               const Spacer(),
               ElevatedButton(
                 onPressed: () => _submit(context),
-                child: Text('Save'),
+                child: const Text('Save'),
               ),
             ],
           ),

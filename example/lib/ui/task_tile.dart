@@ -4,7 +4,7 @@ import '../domain/task.dart';
 import '../extensions.dart';
 import 'task_hero.dart';
 
-final animationDuration = const Duration(milliseconds: 200);
+const animationDuration = Duration(milliseconds: 200);
 
 class TaskTile extends StatelessWidget {
   final Task task;
@@ -34,7 +34,7 @@ class TaskTile extends StatelessWidget {
             'You can always undo',
             style: Theme.of(context)
                 .textTheme
-                .headline5
+                .headlineSmall
                 ?.copyWith(color: Colors.white),
           ),
         ),

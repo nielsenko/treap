@@ -10,13 +10,13 @@ import 'task_tile.dart';
 class TodoListPage extends StatefulWidget {
   final String title;
 
-  TodoListPage({Key? key, required this.title}) : super(key: key);
+  const TodoListPage({Key? key, required this.title}) : super(key: key);
 
   @override
   State<TodoListPage> createState() => _TodoListPageState();
 }
 
-final opacityCurve = const Interval(0.0, 0.75, curve: Curves.fastOutSlowIn);
+const opacityCurve = Interval(0.0, 0.75, curve: Curves.fastOutSlowIn);
 
 class _TodoListPageState extends State<TodoListPage> {
   final listKey = GlobalKey<AnimatedListState>();
@@ -103,61 +103,62 @@ class _TodoListPageState extends State<TodoListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: AnimatedList(
-              key: listKey,
-              initialItemCount: tasks.size,
-              itemBuilder: (context, index, animation) {
-                if (index >= tasks.size) {
-                  print('$index missing!');
-                  return SizedBox();
-                }
-                final task = tasks[index];
-                return TaskTile(
-                  key: ValueKey(task.id),
-                  task: task,
-                  onCompletionChanged: (v) => _setCompletion(task, v),
-                  onDismissed: (d) => _removeTask(task),
-                  onTap: () async {
-                    _editTask(
-                      task,
-                      await Navigator.push(
-                            context,
-                            PageRouteBuilder<Task>(
-                              pageBuilder:
-                                  (context, animation, secondaryAnimation) {
-                                return AnimatedBuilder(
-                                  animation: animation,
-                                  builder: (context, child) {
-                                    return Opacity(
-                                      opacity: opacityCurve
-                                          .transform(animation.value),
-                                      child: child,
-                                    );
-                                  },
-                                  child: EditTaskPage(task: task),
-                                );
-                              },
-                            ),
-                          ) ??
-                          task,
-                    );
-                  },
-                  animation: animation,
-                );
-              },
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: AnimatedList(
+                key: listKey,
+                initialItemCount: tasks.size,
+                itemBuilder: (context, index, animation) {
+                  if (index >= tasks.size) {
+                    return const SizedBox();
+                  }
+                  final task = tasks[index];
+                  return TaskTile(
+                    key: ValueKey(task.id),
+                    task: task,
+                    onCompletionChanged: (v) => _setCompletion(task, v),
+                    onDismissed: (d) => _removeTask(task),
+                    onTap: () async {
+                      _editTask(
+                        task,
+                        await Navigator.push(
+                              context,
+                              PageRouteBuilder<Task>(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) {
+                                  return AnimatedBuilder(
+                                    animation: animation,
+                                    builder: (context, child) {
+                                      return Opacity(
+                                        opacity: opacityCurve
+                                            .transform(animation.value),
+                                        child: child,
+                                      );
+                                    },
+                                    child: EditTaskPage(task: task),
+                                  );
+                                },
+                              ),
+                            ) ??
+                            task,
+                      );
+                    },
+                    animation: animation,
+                  );
+                },
+              ),
             ),
-          ),
-          _buildUndoRedo(context),
-        ],
+            _buildUndoRedo(context),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addTask,
         tooltip: 'Add new task',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -183,19 +184,23 @@ class _TodoListPageState extends State<TodoListPage> {
                     onPressed: history.canUndo
                         ? () => _updateList(() => history.undo())
                         : null,
-                    icon: Icon(Icons.undo),
+                    icon: const Icon(Icons.undo),
                   ),
                 ),
                 Expanded(
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      trackShape: RoundedRectSliderTrackShape(),
+                      trackShape: const RoundedRectSliderTrackShape(),
                       trackHeight: 4,
-                      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
-                      overlayShape: RoundSliderOverlayShape(overlayRadius: 28),
-                      tickMarkShape: RoundSliderTickMarkShape(),
-                      valueIndicatorShape: PaddleSliderValueIndicatorShape(),
-                      valueIndicatorTextStyle: TextStyle(color: Colors.white),
+                      thumbShape:
+                          const RoundSliderThumbShape(enabledThumbRadius: 8),
+                      overlayShape:
+                          const RoundSliderOverlayShape(overlayRadius: 28),
+                      tickMarkShape: const RoundSliderTickMarkShape(),
+                      valueIndicatorShape:
+                          const PaddleSliderValueIndicatorShape(),
+                      valueIndicatorTextStyle:
+                          const TextStyle(color: Colors.white),
                     ),
                     child: Tooltip(
                       message: 'Select version',
@@ -220,13 +225,13 @@ class _TodoListPageState extends State<TodoListPage> {
                     onPressed: history.canRedo
                         ? () => _updateList(() => history.redo())
                         : null,
-                    icon: Icon(Icons.redo),
+                    icon: const Icon(Icons.redo),
                   ),
                 ),
                 const SizedBox(width: 96), // leave room for FAB
               ],
             )
-          : SizedBox(),
+          : const SizedBox(),
     );
   }
 }
