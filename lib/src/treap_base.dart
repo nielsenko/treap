@@ -12,9 +12,11 @@ class Treap<T extends Comparable<T>> {
 
   // TODO: This is O(N log(N))! An O(N) algorithm exists, if items are sorted.
   // The advantage is, this is simpler, and it works even in the unsorted case.
-  factory Treap.build(Iterable<T> items) => items.fold(Treap(), (acc, i) => acc.add(i));
+  factory Treap.build(Iterable<T> items) =>
+      items.fold(Treap(), (acc, i) => acc.add(i));
 
-  Treap<T> add(T item) => Treap<T>._(_root.add(Node<T>(item, _rnd.nextInt(1 << 32))));
+  Treap<T> add(T item) =>
+      Treap<T>._(_root.add(Node<T>(item, _rnd.nextInt(1 << 32))));
 
   Treap<T> erase(T item) => Treap._(_root.erase(item));
 
@@ -40,7 +42,8 @@ class Treap<T extends Comparable<T>> {
   T prev(T item) => _root.select(rank(item) - 1).item;
   T next(T item) => _root.select(rank(item) + 1).item;
 
-  Treap<T> take(int n) => n < size ? Treap._(_root.split(_root.select(n).item).low) : this;
+  Treap<T> take(int n) =>
+      n < size ? Treap._(_root.split(_root.select(n).item).low) : this;
   Treap<T> skip(int n) {
     if (n >= size) return Treap(); // empty
     final split = _root.split(_root.select(n).item);
@@ -48,7 +51,8 @@ class Treap<T extends Comparable<T>> {
   }
 
   Treap<T> union(Treap<T> other) => Treap._(_root.union(other._root));
-  Treap<T> intersection(Treap<T> other) => Treap._(_root.intersection(other._root));
+  Treap<T> intersection(Treap<T> other) =>
+      Treap._(_root.intersection(other._root));
   Treap<T> difference(Treap<T> other) => Treap._(_root.difference(other._root));
 
   Treap<T> operator +(T item) => add(item);

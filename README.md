@@ -27,9 +27,9 @@ main() {
 }
 ```
 
-For something more significant see the [todo](example/todo/) flutter app
+For something more significant see the [todo](example/) flutter app
 
 ## Status
 
-![master](https://github.com/nielsenko/treap/actions/workflows/dart.yml/badge.svg?branch=master)
+[![main](https://github.com/nielsenko/treap/actions/workflows/dart.yml/badge.svg?branch=main)](https://github.com/nielsenko/treap/actions/workflows/dart.yml)
 [![codecov](https://codecov.io/gh/nielsenko/treap/branch/master/graph/badge.svg?token=JI1PHY21A5)](https://codecov.io/gh/nielsenko/treap)
