@@ -10,7 +10,7 @@ import 'task_tile.dart';
 class TodoListPage extends StatefulWidget {
   final String title;
 
-  const TodoListPage({Key? key, required this.title}) : super(key: key);
+  const TodoListPage({super.key, required this.title});
 
   @override
   State<TodoListPage> createState() => _TodoListPageState();

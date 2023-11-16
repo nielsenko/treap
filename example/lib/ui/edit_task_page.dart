@@ -7,7 +7,7 @@ import 'task_hero.dart';
 class EditTaskPage extends StatefulWidget {
   final Task task;
 
-  const EditTaskPage({Key? key, required this.task}) : super(key: key);
+  const EditTaskPage({super.key, required this.task});
 
   @override
   State<EditTaskPage> createState() => _EditTaskPageState();
