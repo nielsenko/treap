@@ -7,10 +7,10 @@ class TaskHero extends StatelessWidget {
   final double? radius;
 
   const TaskHero({
-    Key? key,
+    super.key,
     required this.task,
     this.radius,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

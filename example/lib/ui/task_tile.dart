@@ -14,13 +14,13 @@ class TaskTile extends StatelessWidget {
   final Animation<double> animation;
 
   const TaskTile({
-    Key? key,
+    super.key,
     required this.task,
     required this.onCompletionChanged,
     required this.animation,
     this.onDismissed,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
