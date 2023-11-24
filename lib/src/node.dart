@@ -77,7 +77,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
   int get size => this?._size ?? 0;
 
   Split<T> split(T pivot) {
-    final self = this;
+    final self = this; // for type promotion
     if (self == null) return emptySplit<T>();
     final order = pivot.compareTo(self.item);
     if (order < 0) {
@@ -92,10 +92,10 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
   }
 
   Node<T>? join(Node<T>? other) {
-    final self = this;
+    final self = this; // for type promotion
     if (self != null && other != null) {
       assert(self.max.compareTo(other.min) < 0);
-      // two - ensure heap order
+      // two nodes - ensure heap order
       if (self.priority > other.priority) {
         return self.withRight(self.right.join(other));
       }
@@ -109,7 +109,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
   Node<T>? erase(T dead) => split(dead).withMiddle(null).join();
 
   Node<T>? union(Node<T>? other) {
-    final self = this;
+    final self = this; // for type promotion
     if (self == null) return other; // {} | B == B
     final s = other.split(self.item);
     return newSplit(
@@ -120,7 +120,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
   }
 
   Node<T>? intersection(Node<T>? other) {
-    final self = this;
+    final self = this; // for type promotion
     if (self == null || other == null) return null; // {} & B == A & {} == {}
     final s = other.split(self.item);
     return newSplit(
@@ -131,7 +131,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
   }
 
   Node<T>? difference(Node<T>? other) {
-    final self = this;
+    final self = this; // for type promotion
     if (self == null) return null; // {} - B == {}
     if (other == null) return self; // A - {} == A
     final s = other.split(self.item);
@@ -143,7 +143,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
   }
 
   Node<T>? find(T item) {
-    final self = this;
+    final self = this; // for type promotion
     if (self == null) return null;
     final order = item.compareTo(self.item);
     if (order < 0) return self.left?.find(item);
@@ -152,7 +152,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
   }
 
   int rank(T item) {
-    final self = this;
+    final self = this; // for type promotion
     if (self == null) return 0;
     final order = item.compareTo(self.item);
     if (order < 0) return self.left.rank(item);
@@ -161,9 +161,9 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
     return l; // order == 0
   }
 
-  /// throws if out of bounds
+  /// Throws a [RangeError] if [rank] is out of bounds
   Node<T> select(int rank) {
-    final self = this;
+    final self = this; // for type promotion
     if (self == null || rank < 0 || rank >= size) {
       throw RangeError.range(rank, 0, size - 1, 'rank');
     }
@@ -174,7 +174,7 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
   }
 
   Iterable<T> get values {
-    final self = this;
+    final self = this; // for type promotion
     if (self == null) return [];
     return self.inOrder().map((n) => n.item);
   }

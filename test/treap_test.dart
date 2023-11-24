@@ -18,12 +18,12 @@ void main() {
           ..add(3);
         expect(x.values, [1]);
 
-        final big = Treap<num>.build([9, 8, 7, 6, 1, 2, 3, 4, 5]..shuffle());
+        final big = Treap<num>.of([9, 8, 7, 6, 1, 2, 3, 4, 5]..shuffle());
         expect(big.values, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
         expect(big.erase(1).erase(0).erase(5).values, [2, 3, 4, 6, 7, 8, 9]);
 
-        final w = Treap<num>.build([1]);
+        final w = Treap<num>.of([1]);
         expect(x, isNot(w)); // equal items does not imply equality
       });
 
@@ -38,7 +38,7 @@ void main() {
       test('find, has, rank, select', () {
         const max = 1000;
         final items = [for (int i = 0; i < max; ++i) i]..shuffle();
-        final t = Treap<num>.build(items);
+        final t = Treap<num>.of(items);
         for (final i in items) {
           expect(t.find(i), isNotNull);
           expect(t.rank(t.find(i)!), i);
@@ -57,7 +57,7 @@ void main() {
       });
 
       test('rank, select', () {
-        final top = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final top = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
         expect(top.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         expect(
             top.values.map((i) => top.rank(i)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -75,12 +75,12 @@ void main() {
 
     group('iterator', () {
       test('values', () {
-        final t = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final t = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
         expect(t.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       });
 
       test('take, skip', () {
-        final t = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final t = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
         for (var i = 0; i < t.size + 10; ++i) {
           expect(t.take(i).values, t.values.take(i));
           expect(t.skip(i).values, t.values.skip(i));
@@ -102,13 +102,12 @@ void main() {
         expect(() => empty.last, throwsStateError);
         expect(empty.lastOrDefault, null);
 
-        final single = Treap<num>.build([1]);
+        final single = Treap<num>.of([1]);
         expect(single.first, single.last);
         expect(single.first, single.firstOrDefault);
         expect(single.first, single.lastOrDefault);
 
-        final many =
-            Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final many = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
         expect(many.first, many.values.first);
         expect(many.first, 0);
         expect(many.last, many.values.last);
@@ -116,7 +115,7 @@ void main() {
       });
 
       test('prev, next', () {
-        final t = Treap<num>.build([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final t = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
         final l = t.values.toList();
         for (var i = 1; i < l.length - 1; ++i) {
           expect(t.prev(t.select(i)), l[i - 1]);
@@ -128,8 +127,8 @@ void main() {
     });
 
     group('set algebra', () {
-      final x = Treap.build(['foo', 'bar']);
-      final y = Treap.build(['bar', 'mitzvah']);
+      final x = Treap.of(['foo', 'bar']);
+      final y = Treap.of(['bar', 'mitzvah']);
 
       test('union', () {
         expect(x.union(y).values, ['bar', 'foo', 'mitzvah']);
@@ -152,8 +151,8 @@ void main() {
         final x = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
         final y = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
 
-        final tx = Treap<num>.build(x);
-        final ty = Treap<num>.build(y);
+        final tx = Treap<num>.of(x);
+        final ty = Treap<num>.of(y);
 
         expect((tx | ty).values, x.union(y));
         expect((tx & ty).values, x.intersection(y));

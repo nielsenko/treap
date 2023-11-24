@@ -1,3 +1,3 @@
-## 1.0.0
+## 0.1.0
 
-- Initial version.
+- Initial version. Public interface still subject to change.
