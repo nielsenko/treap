@@ -25,19 +25,19 @@ final _rnd = Random(42);
 /// Both [add] and [erase] has a space complexity of `O(log(N))`, due to path copying,
 /// but erased nodes can later be reclaimed by the garbage collector, if the old
 /// treaps containing them becomes eligible for reaping.
-class Treap<T extends Comparable<T>> {
+class Treap<T> {
   final Node<T>? _root;
 
   /// The [Comparator] used to determine element order.
   ///
   /// Defaults to [Comparable.compare].
-  final Comparator<T> comparator;
+  final Comparator<T> compare;
 
-  const Treap._(this._root, this.comparator);
+  const Treap._(this._root, this.compare);
 
-  /// The empty [Treap] for a given [comparator].
-  const Treap([Comparator<T>? comparator])
-      : this._(null, comparator ?? Comparable.compare);
+  /// The empty [Treap] for a given [compare] function.
+  const Treap([Comparator<T>? compare])
+      : this._(null, compare ?? Comparable.compare as Comparator<T>);
 
   /// Build a treap containing the [items].
   ///
@@ -53,18 +53,18 @@ class Treap<T extends Comparable<T>> {
   ///
   /// Creates a new node with the [item] and a random priority. Returns a new treap
   /// with the added node.
-  Treap<T> add(T item) =>
-      Treap<T>._(_root.add(Node<T>(item, _rnd.nextInt(1 << 32))), comparator);
+  Treap<T> add(T item) => Treap<T>._(
+      _root.add(Node<T>(item, _rnd.nextInt(1 << 32)), compare), compare);
 
   /// Adds a range of [items].
   ///
   /// Returns a new treap with the added [items].
-  Treap<T> addRange(Iterable<T> items) => union(Treap.of(items, comparator));
+  Treap<T> addRange(Iterable<T> items) => union(Treap.of(items, compare));
 
   /// Erases an [item] from the treap, if it exists.
   ///
   /// Returns a new treap without the erased [item].
-  Treap<T> erase(T item) => Treap._(_root.erase(item), comparator);
+  Treap<T> erase(T item) => Treap._(_root.erase(item, compare), compare);
 
   /// Whether this treap is empty.
   bool get isEmpty => _root == null;
@@ -74,9 +74,9 @@ class Treap<T extends Comparable<T>> {
 
   /// Finds the [item] in this treap.
   ///
-  /// Returns the [T] in the treap, if any, that orders together with [item] by [comparator].
+  /// Returns the [T] in the treap, if any, that orders together with [item] by [compare].
   /// Otherwise returns `null`.
-  T? find(T item) => _root.find(item)?.item;
+  T? find(T item) => _root.find(item, compare)?.item;
 
   /// Whether an[item] exists in this treap.
   ///
@@ -87,12 +87,12 @@ class Treap<T extends Comparable<T>> {
   ///
   /// For an [item] in this treap, the rank is the index of the item. For an item not
   /// in this treap, the rank is the index it would be at, if it was added.
-  int rank(T item) => _root.rank(item);
+  int rank(T item) => _root.rank(item, compare);
 
   /// Selects an item in this treap by its [index].
   T select(int index) => _root.select(index).item;
 
-  /// The values in this treap ordered by the [comparator].
+  /// The values in this treap ordered by the [compare].
   Iterable<T> get values => _root.values;
 
   /// The first item in this treap, or `null` if it is empty.
@@ -127,7 +127,7 @@ class Treap<T extends Comparable<T>> {
   ///
   /// Returns the original treap, if [n] is greater than the [size] of this treap.
   Treap<T> take(int n) => n < size
-      ? Treap._(_root.split(_root.select(n).item).low, comparator)
+      ? Treap._(_root.split(_root.select(n).item, compare).low, compare)
       : this;
 
   /// Skips the first [n] items and returns a new treap with the remaining items.
@@ -135,22 +135,22 @@ class Treap<T extends Comparable<T>> {
   /// Returns an empty treap, if [n] is greater than or equal to the [size] of this
   /// treap.
   Treap<T> skip(int n) {
-    if (n >= size) return Treap(comparator); // empty
-    final split = _root.split(_root.select(n).item);
-    return Treap._(split.high.union(split.middle), comparator);
+    if (n >= size) return Treap(compare); // empty
+    final split = _root.split(_root.select(n).item, compare);
+    return Treap._(split.high.union(split.middle, compare), compare);
   }
 
   /// Returns a new treap that is the union of this treap and the [other] treap.
   Treap<T> union(Treap<T> other) =>
-      Treap._(_root.union(other._root), comparator);
+      Treap._(_root.union(other._root, compare), compare);
 
   /// Returns a new treap that is the intersection of this treap and the [other] treap.
   Treap<T> intersection(Treap<T> other) =>
-      Treap._(_root.intersection(other._root), comparator);
+      Treap._(_root.intersection(other._root, compare), compare);
 
   /// Returns a new treap that is the difference of this treap minus the [other] treap.
   Treap<T> difference(Treap<T> other) =>
-      Treap._(_root.difference(other._root), comparator);
+      Treap._(_root.difference(other._root, compare), compare);
 
   /// Operator overload for [add]ing an [item] to the treap.
   Treap<T> operator +(T item) => add(item);

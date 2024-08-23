@@ -167,11 +167,11 @@ void main() {
 
     test('add, find, erase, inOrder', () {
       final first = node(1);
-      final again = first.add(node(1));
-      final second = first.add(node(2));
-      final third = second.add(node(3));
-      final another = third.add(node(3));
-      final forth = third.add(node(0));
+      final again = first.add(node(1), Comparable.compare);
+      final second = first.add(node(2), Comparable.compare);
+      final third = second.add(node(3), Comparable.compare);
+      final another = third.add(node(3), Comparable.compare);
+      final forth = third.add(node(0), Comparable.compare);
 
       expect(first.inOrder().map((n) => n.item), [1]);
       expect(again.inOrder().map((n) => n.item), [1]);
@@ -182,28 +182,29 @@ void main() {
       expect(identical(third, another), false);
       expect(forth.inOrder().map((n) => n.item), [0, 1, 2, 3]);
 
-      expect(first.find(1), isNotNull);
-      expect(first.find(2), isNull);
+      expect(first.find(1, Comparable.compare), isNotNull);
+      expect(first.find(2, Comparable.compare), isNull);
 
-      expect(second.find(1), isNotNull);
-      expect(second.find(2), isNotNull);
+      expect(second.find(1, Comparable.compare), isNotNull);
+      expect(second.find(2, Comparable.compare), isNotNull);
 
-      final fifth = forth.erase(0);
+      final fifth = forth.erase(0, Comparable.compare);
       expect(fifth!.inOrder().map((n) => n.item), [1, 2, 3]);
       expect(identical(third, fifth), false);
 
-      expect(forth.erase(2)!.inOrder().map((n) => n.item), [0, 1, 3]);
+      expect(forth.erase(2, Comparable.compare)!.inOrder().map((n) => n.item),
+          [0, 1, 3]);
     });
 
     test('rank, select', () {
       final top = [1, 2, 3, 4, 5, 6, 7, 8, 9]
           .reversed
-          .fold(node(0), (acc, i) => acc.add(node(i)));
+          .fold(node(0), (acc, i) => acc.add(node(i), Comparable.compare));
       expect(top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      expect(top.inOrder().map((n) => top.rank(n.item)),
+      expect(top.inOrder().map((n) => top.rank(n.item, Comparable.compare)),
           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      expect(top.rank(-1), 0); // -1 goes before all
-      expect(top.rank(100), 10); // 100 goes after all
+      expect(top.rank(-1, Comparable.compare), 0); // -1 goes before all
+      expect(top.rank(100, Comparable.compare), 10); // 100 goes after all
       expect(
           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
               .fold(true, (acc, i) => acc && top.select(i).item == i),
@@ -214,7 +215,7 @@ void main() {
       // Deterministic shaped treap despite shuffle
       final top = ([1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle()).fold(
         Node<num>(0, 0),
-        (acc, i) => acc.add(Node(i, 5 - i)),
+        (acc, i) => acc.add(Node(i, 5 - i), Comparable.compare),
       );
       expect(
         top.inOrder().map((n) => n.item),

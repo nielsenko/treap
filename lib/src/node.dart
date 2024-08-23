@@ -1,4 +1,4 @@
-class Node<T extends Comparable<T>> {
+class Node<T> {
   final T item;
   final int priority;
   final int _size;
@@ -37,13 +37,13 @@ class Node<T extends Comparable<T>> {
 
 // NOTE: Use inline class when available.
 // For now, use typedef + extension methods
-typedef Split<T extends Comparable<T>> = ({
+typedef Split<T> = ({
   Node<T>? low,
   Node<T>? middle,
   Node<T>? high,
 });
 
-extension<T extends Comparable<T>> on Split<T> {
+extension<T> on Split<T> {
   Split<T> withLow(Node<T>? low) => (low: low, middle: middle, high: high);
   Split<T> withMiddle(Node<T>? middle) =>
       (low: low, middle: middle, high: high);
@@ -55,46 +55,45 @@ extension<T extends Comparable<T>> on Split<T> {
   }
 }
 
-Split<T> emptySplit<T extends Comparable<T>>() =>
-    const (low: null, middle: null, high: null);
+Split<T> emptySplit<T>() => const (low: null, middle: null, high: null);
 
-Split<T> newSplit<T extends Comparable<T>>(
+Split<T> newSplit<T>(
   Node<T>? low,
   Node<T>? middle,
   Node<T>? high,
+  Comparator<T> compare,
 ) {
   final m = middle?.withoutChildren();
   final l = low;
   final h = high;
-  assert(m == null || (h == null || m.item.compareTo(h.min) < 0));
-  assert(m == null || (l == null || l.max.compareTo(m.item) < 0));
-  assert((l == null || h == null) || l.max.compareTo(h.min) < 0);
+  assert(m == null || (h == null || compare(m.item, h.min) < 0));
+  assert(m == null || (l == null || compare(l.max, m.item) < 0));
+  assert((l == null || h == null) || compare(l.max, h.min) < 0);
 
   return (low: l, middle: m, high: h);
 }
 
-extension NodeEx<T extends Comparable<T>> on Node<T>? {
+extension NodeEx<T> on Node<T>? {
   int get size => this?._size ?? 0;
 
-  Split<T> split(T pivot) {
+  Split<T> split(T pivot, Comparator<T> compare) {
     final self = this; // for type promotion
     if (self == null) return emptySplit<T>();
-    final order = pivot.compareTo(self.item);
+    final order = compare(pivot, self.item);
     if (order < 0) {
-      final s = self.left.split(pivot);
+      final s = self.left.split(pivot, compare);
       return s.withHigh(self.withLeft(s.high));
     }
     if (order > 0) {
-      final s = self.right.split(pivot);
+      final s = self.right.split(pivot, compare);
       return s.withLow(self.withRight(s.low));
     }
-    return newSplit(self.left, self, self.right); // order == 0
+    return newSplit(self.left, self, self.right, compare); // order == 0
   }
 
   Node<T>? join(Node<T>? other) {
     final self = this; // for type promotion
     if (self != null && other != null) {
-      assert(self.max.compareTo(other.min) < 0);
       // two nodes - ensure heap order
       if (self.priority > other.priority) {
         return self.withRight(self.right.join(other));
@@ -104,60 +103,65 @@ extension NodeEx<T extends Comparable<T>> on Node<T>? {
     return self ?? other; // zero or one
   }
 
-  Node<T> add(Node<T> child) => split(child.item).withMiddle(child).join()!;
+  Node<T> add(Node<T> child, Comparator<T> compare) =>
+      split(child.item, compare).withMiddle(child).join()!;
 
-  Node<T>? erase(T dead) => split(dead).withMiddle(null).join();
+  Node<T>? erase(T dead, Comparator<T> compare) =>
+      split(dead, compare).withMiddle(null).join();
 
-  Node<T>? union(Node<T>? other) {
+  Node<T>? union(Node<T>? other, Comparator<T> compare) {
     final self = this; // for type promotion
     if (self == null) return other; // {} | B == B
-    final s = other.split(self.item);
+    final s = other.split(self.item, compare);
     return newSplit(
-      self.left.union(s.low),
+      self.left.union(s.low, compare),
       self,
-      self.right.union(s.high),
+      self.right.union(s.high, compare),
+      compare,
     ).join();
   }
 
-  Node<T>? intersection(Node<T>? other) {
+  Node<T>? intersection(Node<T>? other, Comparator<T> compare) {
     final self = this; // for type promotion
     if (self == null || other == null) return null; // {} & B == A & {} == {}
-    final s = other.split(self.item);
+    final s = other.split(self.item, compare);
     return newSplit(
-      self.left.intersection(s.low),
+      self.left.intersection(s.low, compare),
       s.middle,
-      self.right.intersection(s.high),
+      self.right.intersection(s.high, compare),
+      compare,
     ).join();
   }
 
-  Node<T>? difference(Node<T>? other) {
+  Node<T>? difference(Node<T>? other, Comparator<T> compare) {
     final self = this; // for type promotion
     if (self == null) return null; // {} - B == {}
     if (other == null) return self; // A - {} == A
-    final s = other.split(self.item);
+    final s = other.split(self.item, compare);
     return newSplit(
-      self.left.difference(s.low),
+      self.left.difference(s.low, compare),
       s.middle == null ? self : null,
-      self.right.difference(s.high),
+      self.right.difference(s.high, compare),
+      compare,
     ).join();
   }
 
-  Node<T>? find(T item) {
+  Node<T>? find(T item, Comparator<T> compare) {
     final self = this; // for type promotion
     if (self == null) return null;
-    final order = item.compareTo(self.item);
-    if (order < 0) return self.left?.find(item);
-    if (order > 0) return self.right?.find(item);
+    final order = compare(item, self.item);
+    if (order < 0) return self.left?.find(item, compare);
+    if (order > 0) return self.right?.find(item, compare);
     return this; // order == 0
   }
 
-  int rank(T item) {
+  int rank(T item, Comparator<T> compare) {
     final self = this; // for type promotion
     if (self == null) return 0;
-    final order = item.compareTo(self.item);
-    if (order < 0) return self.left.rank(item);
+    final order = compare(item, self.item);
+    if (order < 0) return self.left.rank(item, compare);
     final l = self.left.size;
-    if (order > 0) return l + 1 + self.right.rank(item);
+    if (order > 0) return l + 1 + self.right.rank(item, compare);
     return l; // order == 0
   }
 
