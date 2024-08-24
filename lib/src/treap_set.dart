@@ -2,13 +2,12 @@ import 'dart:collection';
 
 import 'treap_base.dart';
 
-class TreapSet<T extends Comparable<T>> extends SetBase<T> {
+class TreapSet<T> extends SetBase<T> {
   Treap<T> _root;
 
   TreapSet._(this._root);
 
-  TreapSet([Comparator<T> comparator = Comparable.compare])
-      : _root = Treap<T>(comparator);
+  TreapSet([Comparator<T>? comparator]) : _root = Treap<T>(comparator);
 
   @override
   bool add(T value) {
