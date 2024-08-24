@@ -6,8 +6,8 @@ class TreapMap<K, V> extends MapBase<K, V> {
 
   TreapMap._(this._root);
 
-  TreapMap(Comparator<K> comparator)
-      : this._(Treap((a, b) => comparator(a.key, b.key)));
+  TreapMap(Comparator<K> compare)
+      : this._(Treap((a, b) => compare(a.key, b.key)));
 
   @override
   V? operator [](covariant K key) => _root.find((key: key, value: null))?.value;
@@ -39,6 +39,17 @@ class TreapMap<K, V> extends MapBase<K, V> {
   bool containsKey(covariant K key) =>
       _root.find((key: key, value: null)) != null;
 
-//  @override
-//  V elementAt(int index) => _root.select(index).value!;
+  @override
+  Iterable<MapEntry<K, V>> get entries =>
+      _root.values.map((e) => MapEntry(e.key, e.value as V));
+
+  @override
+  void forEach(void Function(K key, V value) action) {
+    for (final e in _root.values) {
+      action(e.key, e.value as V);
+    }
+  }
+
+  @override
+  bool get isEmpty => _root.isEmpty;
 }
