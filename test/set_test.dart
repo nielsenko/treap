@@ -77,5 +77,76 @@ void main() {
       expect(t, {1, 2, 3, 4, 5});
       expect(t2, {1, 2, 3, 4, 5, 6});
     });
+
+    test('clear', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      t.clear();
+      expect(t, []);
+    });
+
+    test('elementAt', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      expect(t.elementAt(0), 1);
+      expect(t.elementAt(4), 5);
+    });
+
+    test('first', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      expect(t.first, 1);
+    });
+
+    test('isEmpty', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      expect(t.isEmpty, isFalse);
+      t.clear();
+      expect(t.isEmpty, isTrue);
+    });
+
+    test('last', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      expect(t.last, 5);
+    });
+
+    test('skip', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      expect(t.skip(0), [1, 2, 3, 4, 5]);
+      expect(t.skip(2), [3, 4, 5]);
+      expect(t.skip(6), []);
+    });
+
+    test('skipWhile', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      expect(t.skipWhile((e) => e < 3), [3, 4, 5]);
+      expect(t.skipWhile((e) => e < 6), []);
+    });
+
+    test('take', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      expect(t.take(0), []);
+      expect(t.take(2), [1, 2]);
+      expect(t.take(6), [1, 2, 3, 4, 5]);
+    });
+
+    test('takeWhile', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      expect(t.takeWhile((e) => e < 3), [1, 2]);
+      expect(t.takeWhile((e) => e < 6), [1, 2, 3, 4, 5]);
+    });
+
+    test('iterator', () {
+      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      final it = t.iterator;
+      expect(it.moveNext(), isTrue);
+      expect(it.current, 1);
+      expect(it.moveNext(), isTrue);
+      expect(it.current, 2);
+      expect(it.moveNext(), isTrue);
+      expect(it.current, 3);
+      expect(it.moveNext(), isTrue);
+      expect(it.current, 4);
+      expect(it.moveNext(), isTrue);
+      expect(it.current, 5);
+      expect(it.moveNext(), isFalse);
+    });
   });
 }
