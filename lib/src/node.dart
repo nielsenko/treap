@@ -150,8 +150,8 @@ extension NodeEx<T> on Node<T>? {
     final self = this; // for type promotion
     if (self == null) return null;
     final order = compare(item, self.item);
-    if (order < 0) return self.left?.find(item, compare);
-    if (order > 0) return self.right?.find(item, compare);
+    if (order < 0) return self.left.find(item, compare);
+    if (order > 0) return self.right.find(item, compare);
     return this; // order == 0
   }
 
