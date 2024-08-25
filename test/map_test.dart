@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:treap/treap.dart';
 import 'package:test/test.dart';
 
