@@ -21,7 +21,7 @@ void main() {
     });
 
     test('remove', () {
-      final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      final t = TreapSet.of([1, 2, 3, 4, 5], _compare);
       expect(t.remove(0), isFalse);
       expect(t.remove(1), isTrue);
       expect(t, [2, 3, 4, 5]);
