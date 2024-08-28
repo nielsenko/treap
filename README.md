@@ -10,7 +10,18 @@ A package implementing a [persistent](https://en.wikipedia.org/wiki/Persistent_d
 
 both in `O(log(N))` time.
 
-This particular implementation is made fully persistent by means of path copying. That is, any operation that would otherwise mutate the treap, instead produces a new treap, and does so using only `O(log(N))` extra space.
+This particular implementation is made fully persistent by means of path copying. That is, any operation that would otherwise mutate the treap, instead produces a new treap, and does so using only `O(log(N))` extra space. This allow copies to be `O(1)` in time and space.
+
+## TreapSet
+
+`TreapSet<T>` (build on top of `Treap<T>`) implements `Set<T>`. It resembles `SplayTreeSet<T>` in behavior, keeping elements ordered, but is differs in performance of:
+- `take`
+- `skip`
+- `elementAt`
+
+which are all `O(log(N))` (given `select` and `rank`) and `toSet` which is `O(1)` and hence much faster than all the 3 standard sets (`LinkedHashSet` (default), `HashSet` and `SplayTreeSet`).
+
+As a rule of thumb the mutating operations `add`, `remove` are roughly twice as slow as for `SplaySetTree` (which is already a lot slower than `HashSet` and `LinkedHashSet` in this regard). This is mostly due to the cost of the _path copying_ done to make `Treap<T>` immutable. A full benchmark suite can be found in `benchmark/main.dart` comparing various set operations on the three standard sets  and `TreapSet`.
 
 ## Example
 
