@@ -5,7 +5,21 @@ import 'package:treap/src/treap_set.dart';
 
 import 'set_benchmark.dart';
 
-void header<T>() => print('-- $T '.padRight(80, '-'));
+void runFor<S extends Set<T>, T>(
+  SetFactory<S, T> setFactory,
+  Iterable<T> items,
+) {
+  print('-- $S '.padRight(80, '-'));
+  CtorBenchmark(setFactory, items).report();
+  AddAllBenchmark(setFactory, items).report();
+  ToSetBenchmark(setFactory, items).report();
+  TakeBenchmark(setFactory, items).report();
+  SkipBenchmark(setFactory, items).report();
+  ElementAtBenchmark(setFactory, items).report();
+  UnionBenchmark(setFactory, items).report();
+  IntersectionBenchmark(setFactory, items).report();
+  DifferenceBenchmark(setFactory, items).report();
+}
 
 int main(List<String> args) {
   for (int n = 1000; n <= 10000000; n *= 10) {
@@ -13,49 +27,10 @@ int main(List<String> args) {
 
     final items = List.generate(n, (i) => i)..shuffle();
 
-    header<TreapSet<int>>();
-    CtorBenchmark((items) => TreapSet.of(items), items).report();
-    AddAllBenchmark((items) => TreapSet.of(items), items).report();
-    ToSetBenchmark((items) => TreapSet.of(items), items).report();
-    TakeBenchmark((items) => TreapSet.of(items), items).report();
-    SkipBenchmark((items) => TreapSet.of(items), items).report();
-    ElementAtBenchmark((items) => TreapSet.of(items), items).report();
-    UnionBenchmark((items) => TreapSet.of(items), items).report();
-    IntersectionBenchmark((items) => TreapSet.of(items), items).report();
-    DifferenceBenchmark((items) => TreapSet.of(items), items).report();
-
-    header<LinkedHashSet<int>>();
-    CtorBenchmark((items) => LinkedHashSet.of(items), items).report();
-    AddAllBenchmark((items) => LinkedHashSet.of(items), items).report();
-    ToSetBenchmark((items) => LinkedHashSet.of(items), items).report();
-    TakeBenchmark((items) => LinkedHashSet.of(items), items).report();
-    SkipBenchmark((items) => LinkedHashSet.of(items), items).report();
-    ElementAtBenchmark((items) => LinkedHashSet.of(items), items).report();
-    UnionBenchmark((items) => LinkedHashSet.of(items), items).report();
-    IntersectionBenchmark((items) => LinkedHashSet.of(items), items).report();
-    DifferenceBenchmark((items) => LinkedHashSet.of(items), items).report();
-
-    header<SplayTreeSet<int>>();
-    CtorBenchmark((items) => SplayTreeSet.of(items), items).report();
-    AddAllBenchmark((items) => SplayTreeSet.of(items), items).report();
-    ToSetBenchmark((items) => SplayTreeSet.of(items), items).report();
-    TakeBenchmark((items) => SplayTreeSet.of(items), items).report();
-    SkipBenchmark((items) => SplayTreeSet.of(items), items).report();
-    ElementAtBenchmark((items) => SplayTreeSet.of(items), items).report();
-    UnionBenchmark((items) => SplayTreeSet.of(items), items).report();
-    IntersectionBenchmark((items) => SplayTreeSet.of(items), items).report();
-    DifferenceBenchmark((items) => SplayTreeSet.of(items), items).report();
-
-    header<HashSet<int>>();
-    CtorBenchmark((items) => HashSet.of(items), items).report();
-    AddAllBenchmark((items) => HashSet.of(items), items).report();
-    ToSetBenchmark((items) => HashSet.of(items), items).report();
-    TakeBenchmark((items) => HashSet.of(items), items).report();
-    SkipBenchmark((items) => HashSet.of(items), items).report();
-    ElementAtBenchmark((items) => HashSet.of(items), items).report();
-    UnionBenchmark((items) => HashSet.of(items), items).report();
-    IntersectionBenchmark((items) => HashSet.of(items), items).report();
-    DifferenceBenchmark((items) => HashSet.of(items), items).report();
+    runFor((items) => TreapSet.of(items), items);
+    runFor((items) => LinkedHashSet.of(items), items);
+    runFor((items) => SplayTreeSet.of(items), items);
+    runFor((items) => HashSet.of(items), items);
   }
 
   return 0;
