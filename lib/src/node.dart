@@ -35,8 +35,8 @@ class Node<T> {
       final l = left;
       final r = right;
       // check heap order
-      assert(l == null || l.priority < priority);
-      assert(r == null || r.priority < priority);
+      assert(l == null || l.priority <= priority);
+      assert(r == null || r.priority <= priority);
       return true;
     }());
   }

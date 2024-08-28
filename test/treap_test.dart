@@ -215,8 +215,10 @@ void main() {
 
     test('preOrder, inOrder, postOrder', () {
       // Deterministic shaped treap despite shuffle
-      final top = ([1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle()).fold(
-        Node<num>(0, 0),
+      final items = [5, 6, 3, 9, 1, 8, 2, 4, 7]; // evil order
+      print(items);
+      final top = items.fold(
+        Node<num>(0, 0), // will have same priority (5,0)
         (acc, i) => acc.add(Node(i, 5 - i), Comparable.compare),
       );
       expect(
