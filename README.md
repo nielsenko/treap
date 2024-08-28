@@ -1,7 +1,7 @@
 # Treap 
 
-[![main](https://github.com/nielsenko/treap/actions/workflows/dart.yml/badge.svg?branch=main)](https://github.com/nielsenko/treap/actions/workflows/dart.yml)
-[![codecov](https://codecov.io/gh/nielsenko/treap/branch/master/graph/badge.svg?token=JI1PHY21A5)](https://codecov.io/gh/nielsenko/treap)
+[![main](https://github.com/nielsenko/treap/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nielsenko/treap/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/nielsenko/treap/branch/main/graph/badge.svg?token=JI1PHY21A5)](https://codecov.io/gh/nielsenko/treap)
 
 A package implementing a [persistent](https://en.wikipedia.org/wiki/Persistent_data_structure) (immutable) [order statistic tree](https://en.wikipedia.org/wiki/Order_statistic_tree) by means of the [treap](https://en.wikipedia.org/wiki/Treap) data structure (a kind of [cartesian tree](https://en.wikipedia.org/wiki/Cartesian_tree)). Apart from the regular set operations, it allows for:
 
