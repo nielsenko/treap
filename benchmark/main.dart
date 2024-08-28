@@ -22,7 +22,7 @@ void runFor<S extends Set<T>, T>(
 }
 
 int main(List<String> args) {
-  for (int n = 1000; n <= 10000000; n *= 10) {
+  for (int n = 10; n <= 10000000; n *= 10) {
     print('n: $n, log(n): ${log(n)}, n*log(n): ${n * log(n)}');
 
     final items = List.generate(n, (i) => i)..shuffle();
