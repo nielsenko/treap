@@ -17,12 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2 # would rather use dartlang/setup-dart but.. 
-        with:
-          channel: stable
+
+      - name: Setup runner
+        uses: ./.github/actions/setup-runner
 
       - name: Install dependencies
-        run: dart pub get
+        run: dart pub get --no-example
+
+      - name: Install example dependencies
+        run: flutter pub get
+        working-directory: example
 
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
@@ -61,9 +65,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2 # would rather use dartlang/setup-dart@v1 but.. 
+      - name: Setup runner
+        uses: ./.github/actions/setup-runner
         with:
-          channel: ${{ matrix.channel }}
+          flutter-version: ${{ matrix.channel }}
 
       - name: Run tests
         run: dart test --reporter=expanded --concurrency=1
