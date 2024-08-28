@@ -14,7 +14,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pre-cache:
+    # This job is used to setup the runner and cache the setup once per os.
+    # This is done to avoid running the setup multiple times in parallel later during test.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - id: setup-env
+        shell: bash
+        run: |
+          export PURO_ROOT=$(dirname $GITHUB_WORKSPACE)/puro
+          echo PURO_ROOT=$PURO_ROOT >> $GITHUB_ENV
+
+      - id: cache-check
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.PURO_ROOT }}
+          lookup-only: true
+          key: setup-runner-${{ runner.os }}-${{ runner.arch }}-
+          restore-keys: setup-runner-${{ runner.os }}-${{ runner.arch }}-
+
+      - uses: actions/checkout@v4
+        if: steps.cache-check.outputs.cache-matched-key == ''
+      - name: Setup runner
+        if: steps.cache-check.outputs.cache-matched-key == ''
+        uses: ./.github/actions/setup-runner
+
   build:
+    needs: pre-cache
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
