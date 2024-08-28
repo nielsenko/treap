@@ -1,3 +1,5 @@
+// Copyright 2024 - 2024, kasper@byolimit.com
+// SPDX-License-Identifier: BSD-3-Clause
 import 'package:treap/treap.dart';
 import 'package:test/test.dart';
 

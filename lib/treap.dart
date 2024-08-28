@@ -1,3 +1,6 @@
+// Copyright 2021 - 2024, kasper@byolimit.com
+// SPDX-License-Identifier: BSD-3-Clause
+
 /// An implementation of the [Treap]
 /// data structure for [Dart](https://dart.dev)
 library treap;

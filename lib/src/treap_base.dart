@@ -1,3 +1,5 @@
+// Copyright 2021 - 2024, kasper@byolimit.com
+// SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
 import 'node.dart';
@@ -54,7 +56,11 @@ class Treap<T> {
   /// Creates a new node with the [item] and a random priority. Returns a new treap
   /// with the added node.
   Treap<T> add(T item) => Treap<T>._(
-      _root.add(Node<T>(item, _rnd.nextInt(1 << 32)), compare), compare);
+      _root.add(
+        Node<T>(item, _rnd.nextInt(1 << 32)),
+        compare,
+      ),
+      compare);
 
   /// Adds a range of [items].
   ///
@@ -135,9 +141,12 @@ class Treap<T> {
   /// Returns an empty treap, if [n] is greater than or equal to the [size] of this
   /// treap.
   Treap<T> skip(int n) {
+    if (n == 0) return this;
     if (n >= size) return Treap(compare); // empty
-    final split = _root.split(_root.select(n).item, compare);
-    return Treap._(split.high.union(split.middle, compare), compare);
+    return Treap._(
+      _root.split(_root.select(n - 1).item, compare).high,
+      compare,
+    );
   }
 
   /// Returns a new treap that is the union of this treap and the [other] treap.

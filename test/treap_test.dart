@@ -1,3 +1,5 @@
+// Copyright 2021 - 2024, kasper@byolimit.com
+// SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
 import 'package:treap/src/node.dart';

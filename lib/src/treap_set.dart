@@ -1,3 +1,5 @@
+// Copyright 2024 - 2024, kasper@byolimit.com
+// SPDX-License-Identifier: BSD-3-Clause
 import 'dart:collection';
 
 import 'treap_base.dart';
@@ -8,6 +10,9 @@ class TreapSet<T> extends SetBase<T> {
   TreapSet._(this._root);
 
   TreapSet([Comparator<T>? compare]) : _root = Treap<T>(compare);
+
+  TreapSet.of(Iterable<T> items, [Comparator<T>? compare])
+      : _root = Treap.of(items, compare);
 
   @override
   bool add(T value) {

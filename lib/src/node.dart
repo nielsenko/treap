@@ -1,3 +1,7 @@
+// Copyright 2024 - 2024, kasper@byolimit.com
+// SPDX-License-Identifier: BSD-3-Clause
+import 'split.dart';
+
 class Node<T> {
   final T item;
   final int priority;
@@ -5,72 +9,37 @@ class Node<T> {
   final Node<T>? left, right;
 
   Node(this.item, this.priority, {this.left, this.right})
-      : _size = 1 + left.size + right.size;
-
-  Iterable<Node<T>> inOrder() sync* {
-    yield* left?.inOrder() ?? [];
-    yield this;
-    yield* right?.inOrder() ?? [];
+      : _size = 1 + left.size + right.size {
+    checkInvariant();
   }
 
-  Iterable<Node<T>> postOrder() sync* {
-    yield* left?.postOrder() ?? [];
-    yield* right?.postOrder() ?? [];
-    yield this;
-  }
-
-  Iterable<Node<T>> preOrder() sync* {
-    yield this;
-    yield* left?.preOrder() ?? [];
-    yield* right?.preOrder() ?? [];
-  }
-
+  /// Replace the left child with [left].
   Node<T> withLeft(Node<T>? left) =>
       Node(item, priority, left: left, right: right);
+
+  /// Replace the right child with [right].
   Node<T> withRight(Node<T>? right) =>
       Node(item, priority, left: left, right: right);
+
+  /// Create a copy of this node without children.
   Node<T> withoutChildren() => Node(item, priority);
 
+  /// The minimum item in the treap.
   T get min => left == null ? item : left!.min;
+
+  /// The maximum item in the treap.
   T get max => right == null ? item : right!.max;
-}
 
-// NOTE: Use inline class when available.
-// For now, use typedef + extension methods
-typedef Split<T> = ({
-  Node<T>? low,
-  Node<T>? middle,
-  Node<T>? high,
-});
-
-extension<T> on Split<T> {
-  Split<T> withLow(Node<T>? low) => (low: low, middle: middle, high: high);
-  Split<T> withMiddle(Node<T>? middle) =>
-      (low: low, middle: middle, high: high);
-  Split<T> withHigh(Node<T>? high) => (low: low, middle: middle, high: high);
-  Node<T>? join() {
-    final m = middle;
-    if (m == null) return low.join(high);
-    return low.join(m.join(high));
+  void checkInvariant() {
+    assert(() {
+      final l = left;
+      final r = right;
+      // check heap order
+      assert(l == null || l.priority < priority);
+      assert(r == null || r.priority < priority);
+      return true;
+    }());
   }
-}
-
-Split<T> emptySplit<T>() => const (low: null, middle: null, high: null);
-
-Split<T> newSplit<T>(
-  Node<T>? low,
-  Node<T>? middle,
-  Node<T>? high,
-  Comparator<T> compare,
-) {
-  final m = middle?.withoutChildren();
-  final l = low;
-  final h = high;
-  assert(m == null || (h == null || compare(m.item, h.min) < 0));
-  assert(m == null || (l == null || compare(l.max, m.item) < 0));
-  assert((l == null || h == null) || compare(l.max, h.min) < 0);
-
-  return (low: l, middle: m, high: h);
 }
 
 extension NodeEx<T> on Node<T>? {
@@ -78,7 +47,7 @@ extension NodeEx<T> on Node<T>? {
 
   Split<T> split(T pivot, Comparator<T> compare) {
     final self = this; // for type promotion
-    if (self == null) return emptySplit<T>();
+    if (self == null) return const Split.empty();
     final order = compare(pivot, self.item);
     if (order < 0) {
       final s = self.left.split(pivot, compare);
@@ -88,7 +57,8 @@ extension NodeEx<T> on Node<T>? {
       final s = self.right.split(pivot, compare);
       return s.withLow(self.withRight(s.low));
     }
-    return newSplit(self.left, self, self.right, compare); // order == 0
+    return Split((low: self.left, middle: self, high: self.right)) // order == 0
+      ..checkInvariant(compare);
   }
 
   Node<T>? join(Node<T>? other) {
@@ -112,25 +82,24 @@ extension NodeEx<T> on Node<T>? {
   Node<T>? union(Node<T>? other, Comparator<T> compare) {
     final self = this; // for type promotion
     if (self == null) return other; // {} | B == B
+    if (other == null) return self; // A | {} == A
     final s = other.split(self.item, compare);
-    return newSplit(
-      self.left.union(s.low, compare),
-      self,
-      self.right.union(s.high, compare),
-      compare,
-    ).join();
+    return Split((
+      low: self.left.union(s.low, compare),
+      middle: self,
+      high: self.right.union(s.high, compare)
+    )).join();
   }
 
   Node<T>? intersection(Node<T>? other, Comparator<T> compare) {
     final self = this; // for type promotion
     if (self == null || other == null) return null; // {} & B == A & {} == {}
     final s = other.split(self.item, compare);
-    return newSplit(
-      self.left.intersection(s.low, compare),
-      s.middle,
-      self.right.intersection(s.high, compare),
-      compare,
-    ).join();
+    return Split((
+      low: self.left.intersection(s.low, compare),
+      middle: s.middle,
+      high: self.right.intersection(s.high, compare)
+    )).join();
   }
 
   Node<T>? difference(Node<T>? other, Comparator<T> compare) {
@@ -138,12 +107,11 @@ extension NodeEx<T> on Node<T>? {
     if (self == null) return null; // {} - B == {}
     if (other == null) return self; // A - {} == A
     final s = other.split(self.item, compare);
-    return newSplit(
-      self.left.difference(s.low, compare),
-      s.middle == null ? self : null,
-      self.right.difference(s.high, compare),
-      compare,
-    ).join();
+    return Split((
+      low: self.left.difference(s.low, compare),
+      middle: s.middle == null ? self : null,
+      high: self.right.difference(s.high, compare)
+    )).join();
   }
 
   Node<T>? find(T item, Comparator<T> compare) {
@@ -177,9 +145,33 @@ extension NodeEx<T> on Node<T>? {
     return self.right.select(rank - l - 1);
   }
 
-  Iterable<T> get values {
-    final self = this; // for type promotion
-    if (self == null) return [];
-    return self.inOrder().map((n) => n.item);
+  /// Iterate over the items in the treap in order.
+  Iterable<T> get values => inOrder().map((n) => n.item);
+
+  /// Iterates over the nodes in the treap in order.
+  Iterable<Node<T>> inOrder() sync* {
+    final self = this;
+    if (self == null) return;
+    yield* self.left.inOrder();
+    yield self;
+    yield* self.right.inOrder();
+  }
+
+  /// Iterates over the nodes in the treap in post-order.
+  Iterable<Node<T>> postOrder() sync* {
+    final self = this;
+    if (self == null) return;
+    yield* self.left.postOrder();
+    yield* self.right.postOrder();
+    yield self;
+  }
+
+  /// Iterates over the nodes in the treap in pre-order.
+  Iterable<Node<T>> preOrder() sync* {
+    final self = this;
+    if (self == null) return;
+    yield self;
+    yield* self.left.preOrder();
+    yield* self.right.preOrder();
   }
 }
