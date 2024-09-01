@@ -16,7 +16,7 @@ class TreapMap<K, V> extends MapBase<K, V> {
 
   @override
   void operator []=(K key, V value) =>
-      _root = _root.add((key: key, value: value));
+      _root = _root.addOrUpdate((key: key, value: value));
 
   @override
   void clear() => _root = Treap(_root.compare);

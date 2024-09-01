@@ -12,7 +12,9 @@ void main() {
       test('add, erase, build', () {
         final x = Treap<num>() + 1;
         final y = x.add(1);
-        expect(x, isNot(y)); // add gives new Treap, even for existing items
+        final z = x.addOrUpdate(1);
+        expect(x, y);
+        expect(x, isNot(z));
 
         // Be aware, that chaining with .. operator probably don't do what you want
         x
@@ -33,6 +35,11 @@ void main() {
         final t = Treap<String>();
         expect(t.isEmpty, isTrue);
         expect(t.values, []);
+      });
+
+      test('duplicates', () {
+        final t = Treap<num>.of([1, 1, 1, 1, 1]);
+        expect(t.values, [1]);
       });
     });
 
@@ -165,15 +172,17 @@ void main() {
 
   group('Node', () {
     final rnd = Random(42 ^ 42);
-    Node<num> node(num value) => Node<num>(value, rnd.nextInt(1 << 32));
+    Node<num> node(num value) =>
+        PersistentNode<num>(value, rnd.nextInt(1 << 32));
 
     test('add, find, erase, inOrder', () {
       final first = node(1);
-      final again = first.add(node(1), Comparable.compare);
-      final second = first.add(node(2), Comparable.compare);
-      final third = second.add(node(3), Comparable.compare);
-      final another = third.add(node(3), Comparable.compare);
-      final forth = third.add(node(0), Comparable.compare);
+      final (root: again, old: _) = first.upsert(node(1), Comparable.compare);
+      final (root: second, old: _) = first.upsert(node(2), Comparable.compare);
+      final (root: third, old: _) = second.upsert(node(3), Comparable.compare);
+      final (root: another, old: _) =
+          second.upsert(node(3), Comparable.compare);
+      final (root: forth, old: _) = third.upsert(node(0), Comparable.compare);
 
       expect(first.inOrder().map((n) => n.item), [1]);
       expect(again.inOrder().map((n) => n.item), [1]);
@@ -190,18 +199,19 @@ void main() {
       expect(second.find(1, Comparable.compare), isNotNull);
       expect(second.find(2, Comparable.compare), isNotNull);
 
-      final fifth = forth.erase(0, Comparable.compare);
+      final (root: fifth, old: _) = forth.erase(0, Comparable.compare);
       expect(fifth!.inOrder().map((n) => n.item), [1, 2, 3]);
       expect(identical(third, fifth), false);
 
-      expect(forth.erase(2, Comparable.compare)!.inOrder().map((n) => n.item),
-          [0, 1, 3]);
+      expect(
+        forth.erase(2, Comparable.compare).root!.inOrder().map((n) => n.item),
+        [0, 1, 3],
+      );
     });
 
     test('rank, select', () {
-      final top = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-          .reversed
-          .fold(node(0), (acc, i) => acc.add(node(i), Comparable.compare));
+      final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold(
+          node(0), (acc, i) => acc.upsert(node(i), Comparable.compare).root);
       expect(top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(top.inOrder().map((n) => top.rank(n.item, Comparable.compare)),
           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -217,9 +227,10 @@ void main() {
       // Deterministic shaped treap despite shuffle
       final items = [5, 6, 3, 9, 1, 8, 2, 4, 7]; // evil order
       print(items);
-      final top = items.fold(
-        Node<num>(0, 0), // will have same priority (5,0)
-        (acc, i) => acc.add(Node(i, 5 - i), Comparable.compare),
+      final top = items.fold<Node<num>>(
+        PersistentNode<num>(0, 0), // will have same priority (5,0)
+        (acc, i) =>
+            acc.upsert(PersistentNode<num>(i, 5 - i), Comparable.compare).root,
       );
       expect(
         top.inOrder().map((n) => n.item),
