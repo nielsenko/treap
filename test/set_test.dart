@@ -150,5 +150,11 @@ void main() {
       expect(it.current, 5);
       expect(it.moveNext(), isFalse);
     });
+
+    test("add don't update", () {
+      final s = TreapSet.of([(1, 2)], (a, b) => a.$1 - b.$1);
+      expect(s.add((1, 3)), isFalse);
+      expect(s.lookup((1, 0)), (1, 2));
+    });
   });
 }
