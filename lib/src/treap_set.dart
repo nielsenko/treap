@@ -22,7 +22,7 @@ class TreapSet<T> extends SetBase<T> {
   }
 
   @override
-  void addAll(Iterable<T> elements) => _root = _root.addRange(elements);
+  void addAll(Iterable<T> elements) => _root = _root.addAll(elements);
 
   @override
   bool contains(covariant T element) => lookup(element) != null;

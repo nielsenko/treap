@@ -2,27 +2,23 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'split.dart';
 
-class Node<T> {
+sealed class Node<T> {
   final T item;
   final int priority;
-  final int _size;
-  final Node<T>? left, right;
+  int get _size; // size is an extension method on Node<T>?
+  Node<T>? get left;
+  Node<T>? get right;
 
-  Node(this.item, this.priority, {this.left, this.right})
-      : _size = 1 + left.size + right.size {
+  Node(this.item, this.priority) {
     checkInvariant();
   }
 
-  /// Replace the left child with [left].
-  Node<T> withLeft(Node<T>? left) =>
-      Node(item, priority, left: left, right: right);
+  Node<T> withLeft(Node<T>? left);
 
-  /// Replace the right child with [right].
-  Node<T> withRight(Node<T>? right) =>
-      Node(item, priority, left: left, right: right);
+  Node<T> withRight(Node<T>? right);
 
-  /// Create a copy of this node without children.
-  Node<T> withoutChildren() => Node(item, priority);
+  /// x
+  Node<T> withoutChildren();
 
   /// The minimum item in the treap.
   T get min => left == null ? item : left!.min;
@@ -42,6 +38,31 @@ class Node<T> {
   }
 }
 
+class PersistentNode<T> extends Node<T> {
+  @override
+  final PersistentNode<T>? left, right;
+  @override
+  final int _size;
+
+  PersistentNode(super.item, super.priority, {this.left, this.right})
+      : _size = 1 + left.size + right.size;
+
+  /// Create a copy with the left child set to [left].
+  @override
+  PersistentNode<T> withLeft(covariant PersistentNode<T>? left) =>
+      PersistentNode(item, priority, left: left, right: right);
+
+  /// Create a copy with the right child set to [right].
+  @override
+  PersistentNode<T> withRight(covariant PersistentNode<T>? right) =>
+      PersistentNode(item, priority, left: left, right: right);
+
+  /// Create a copy of this node without children.
+  /// @super
+  @override
+  PersistentNode<T> withoutChildren() => PersistentNode(item, priority);
+}
+
 extension NodeEx<T> on Node<T>? {
   int get size => this?._size ?? 0;
 
@@ -57,7 +78,8 @@ extension NodeEx<T> on Node<T>? {
       final s = self.right.split(pivot, compare);
       return s.withLow(self.withRight(s.low));
     }
-    return Split((low: self.left, middle: self, high: self.right)) // order == 0
+    // order == 0
+    return Split((low: self.left, middle: self, high: self.right))
       ..checkInvariant(compare);
   }
 
@@ -73,11 +95,16 @@ extension NodeEx<T> on Node<T>? {
     return self ?? other; // zero or one
   }
 
-  Node<T> add(Node<T> child, Comparator<T> compare) =>
-      split(child.item, compare).withMiddle(child).join()!;
+  ({Node<T> root, T? old}) upsert(Node<T> child, Comparator<T> compare) {
+    final item = child.item;
+    final s = split(item, compare);
+    return (root: s.withMiddle(child).join()!, old: s.middle?.item);
+  }
 
-  Node<T>? erase(T dead, Comparator<T> compare) =>
-      split(dead, compare).withMiddle(null).join();
+  ({Node<T>? root, T? old}) erase(T dead, Comparator<T> compare) {
+    final s = split(dead, compare);
+    return (root: s.withMiddle(null).join(), old: s.middle?.item);
+  }
 
   Node<T>? union(Node<T>? other, Comparator<T> compare) {
     final self = this; // for type promotion
