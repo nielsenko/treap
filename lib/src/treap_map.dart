@@ -30,7 +30,7 @@ class TreapMap<K, V> extends MapBase<K, V> {
   @override
   V? remove(covariant K key) {
     final toDie = _root.find((key: key, value: null));
-    if (toDie != null) _root = _root.erase(toDie);
+    if (toDie != null) _root = _root.remove(toDie);
     return toDie?.value;
   }
 

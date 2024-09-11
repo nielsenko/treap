@@ -8,7 +8,7 @@ abstract class BenchmarkBase extends harness.BenchmarkBase {
     try {
       super.report();
     } catch (e) {
-      print('$name: Failed!');
+      print('$name: Failed! $e');
     }
   }
 
@@ -20,7 +20,7 @@ typedef SetFactory<S extends Set<T>, T> = S Function(Iterable<T> items);
 
 abstract class SetBenchmark<S extends Set<T>, T> extends BenchmarkBase {
   final SetFactory<S, T> setFactory;
-  final Iterable<T> items;
+  final List<T> items;
   final int noOfItems; // count up front
   SetBenchmark(this.setFactory, this.items, String name)
       : noOfItems = items.length,
@@ -52,25 +52,27 @@ class ToSetBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
   void run() => set.toSet();
 }
 
-class AddAllBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
+class AddAllBenchmark<S extends Set<T>, T> extends SetBenchmark<S, T> {
   AddAllBenchmark(super.setFactory, super.items, [super.name = 'addAll']);
 
   @override
-  void run() => set.addAll(items);
+  void run() {
+    setFactory(const []).addAll(items);
+  }
 }
 
 class TakeBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
   TakeBenchmark(super.setFactory, super.items, [super.name = 'take']);
 
   @override
-  void run() => set.take(noOfItems ~/ 2).toSet();
+  void run() => set.take(noOfItems ~/ 2).lastOrNull; // ensure iteration is done
 }
 
 class SkipBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
   SkipBenchmark(super.setFactory, super.items, [super.name = 'skip']);
 
   @override
-  void run() => set.skip(noOfItems ~/ 2).toSet();
+  void run() => set.skip(noOfItems ~/ 2).lastOrNull; // ensure iteration is done
 }
 
 class ElementAtBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
