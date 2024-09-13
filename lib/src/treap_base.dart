@@ -61,8 +61,8 @@ final class Treap<T> {
   /// This method is `O(N log(N))` in complexity. An `O(N)` algorithm exists if the
   /// items are sorted. However, this works in all cases.
   factory Treap.of(Iterable<T> items, [Comparator<T>? compare]) {
-    return Treap(compare).addAll(items);
-/*
+    //return Treap(compare).addAll(items);
+
     compare ??= Comparable.compare as Comparator<T>;
     final ctx = node.NodeContext<T, _Node<T>>(compare, _createNode);
     _Node<T>? root;
@@ -74,16 +74,15 @@ final class Treap<T> {
         final next = it.current;
         if (compare(last, next) < 0) {
           // sorted allows for fast path
-          root = node.joinN(root, ctx.create(last = next), null, ctx);
+          root = node.join(root, ctx.create(last = next), null, ctx);
         } else {
           do {
-            root = node.upsert(root, ctx.create(it.current), compare).root;
+            root = node.upsert(root, it.current, false, ctx);
           } while (it.moveNext());
         }
       }
     }
     return Treap._(root, ctx);
-*/
   }
 
   /// Create a copy of this treap.
