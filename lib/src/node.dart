@@ -62,9 +62,6 @@ sealed class Node<T, NodeT extends Node<T, NodeT>> {
   /// The maximum item in the treap.
   NodeT get last => right == null ? this as NodeT : right!.last;
 
-  /// Iterate over the items in the treap in order.
-  Iterable<T> get values => inOrder().map((n) => n.item);
-
   void checkInvariant() {
     assert(() {
       final l = left;

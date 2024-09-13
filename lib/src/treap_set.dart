@@ -43,7 +43,7 @@ class TreapSet<T> extends SetBase<T> {
   bool contains(covariant T element) => lookup(element) != null;
 
   @override
-  Iterator<T> get iterator => (_root?.values ?? const []).iterator;
+  Iterator<T> get iterator => _root.inOrder().map((n) => n.item).iterator;
 
   @override
   int get length => _root.size;
