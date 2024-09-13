@@ -14,6 +14,7 @@ void runFor<S extends Set<T>, T>(
 ) {
   print('-- $S '.padRight(80, '-'));
   CtorBenchmark(setFactory, items).report();
+  CtorSortedBenchmark(setFactory, items).report();
   AddAllBenchmark(setFactory, items).report();
   ToSetBenchmark(setFactory, items).report();
   TakeBenchmark(setFactory, items).report();
@@ -22,6 +23,7 @@ void runFor<S extends Set<T>, T>(
   UnionBenchmark(setFactory, items).report();
   IntersectionBenchmark(setFactory, items).report();
   DifferenceBenchmark(setFactory, items).report();
+  ContainsBenchmark(setFactory, items).report();
 }
 
 int main(List<String> args) {

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:benchmark_harness/benchmark_harness.dart' as harness;
 
 abstract class BenchmarkBase extends harness.BenchmarkBase {
@@ -33,6 +35,18 @@ class CtorBenchmark<S extends Set<T>, T> extends SetBenchmark<S, T> {
   @override
   void run() {
     setFactory(items); // SetT.of(items) (see main.dart)
+  }
+}
+
+class CtorSortedBenchmark<S extends Set<T>, T> extends SetBenchmark<S, T> {
+  final List<T> sorted;
+  CtorSortedBenchmark(super.setFactory, super.items,
+      [super.name = 'of (but sorted)'])
+      : sorted = items.toList()..sort(); // copy and sort
+
+  @override
+  void run() {
+    setFactory(sorted);
   }
 }
 
@@ -118,4 +132,11 @@ class DifferenceBenchmark<S extends Set<T>, T> extends BinaryOpBenchmark<S, T> {
 
   @override
   void run() => set.difference(other);
+}
+
+class ContainsBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
+  ContainsBenchmark(super.setFactory, super.items, [super.name = 'contains']);
+
+  @override
+  void run() => set.contains(items[noOfItems ~/ 2]);
 }

@@ -1,5 +1,3 @@
-// Copyright 2021 - 2024, kasper@byolimit.com
-// SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
 import 'package:meta/meta.dart';
@@ -14,24 +12,24 @@ _Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 32));
 /// A [fully persistent](https://en.wikipedia.org/wiki/Persistent_data_structure)
 /// (immutable) implementation of a [Treap](https://en.wikipedia.org/wiki/Treap).
 ///
-/// A treap is a type of binary search tree. Each node in the tree is assigned a
+/// A treap is a type of binary search tree where each node is assigned a
 /// uniformly distributed priority, either randomly or by a strong hash.
 ///
-/// Nodes in the tree are kept heap-ordered wrt. their priority. This ensures that
+/// Nodes in the tree are kept heap-ordered with respect to their priority. This ensures that
 /// the shape of the tree is a random variable with the same probability distribution
 /// as a random binary tree. Hence the name treap, which is a portmanteau of tree
 /// and heap.
 ///
 /// In particular (with high probability), given a treap with `N` keys, the height
-/// is `O(log(N))`, so that [find], [add], [remove], etc. also takes `O(log(N))` time
+/// is `O(log(N))`, so that [find], [add], [remove], etc. also take `O(log(N))` time
 /// to perform.
 ///
-/// This particular implementation is made [persistent](https://en.wikipedia.org/wiki/Persistent_data_structure),
+/// This particular implementation is made [persistent](https://en.wikipedia.org/wiki/Persistent_data_structure)
 /// by means of path copying.
 ///
-/// Both [add] and [remove] has a space complexity of `O(log(N))`, due to path copying,
-/// but erased nodes can later be reclaimed by the garbage collector, if the old
-/// treaps containing them becomes eligible for reaping.
+/// Both [add] and [remove] have a space complexity of `O(log(N))` due to path copying,
+/// but erased nodes can later be reclaimed by the garbage collector if the old
+/// treaps containing them become eligible for collection.
 @immutable
 final class Treap<T> {
   final _Node<T>? _root;
@@ -44,7 +42,9 @@ final class Treap<T> {
 
   const Treap._(this._root, this._ctx);
 
-  /// The empty [Treap] for a given [compare] function.
+  /// Creates an empty [Treap] with an optional [compare] function.
+  ///
+  /// If [compare] is not provided, it defaults to [Comparable.compare].
   Treap([Comparator<T>? compare])
       : this._(
           null,
@@ -54,16 +54,14 @@ final class Treap<T> {
           ),
         );
 
-  /// Build a treap containing the [items].
+  /// Builds a treap containing the [items].
   ///
   /// Constructs the treap by folding [add] over the [items], adding each one
   /// to the treap in turn.
   ///
-  /// This method is `O(N log(N))` in complexity. An `O(N)` algorithm exists if the
-  /// items are sorted. However, this works in all cases.
+  /// This method has a complexity of `O(N log(N))`. An `O(N)` algorithm exists if the
+  /// items are sorted. However, this method works in all cases.
   factory Treap.of(Iterable<T> items, [Comparator<T>? compare]) {
-    //return Treap(compare).addAll(items);
-
     compare ??= Comparable.compare as Comparator<T>;
     final ctx = NodeContext<T, _Node<T>>(compare, _createNode);
     _Node<T>? root;
@@ -74,7 +72,7 @@ final class Treap<T> {
       while (it.moveNext()) {
         final next = it.current;
         if (compare(last, next) < 0) {
-          // sorted allows for fast path
+          // Fast path for sorted items
           root = join(root, ctx.create(last = next), null, ctx);
         } else {
           do {
@@ -86,26 +84,26 @@ final class Treap<T> {
     return Treap._(root, ctx);
   }
 
-  /// Create a copy of this treap.
+  /// Creates a copy of this treap.
   Treap<T> copy() => _new(_root?.copy());
 
   Treap<T> _new(_Node<T>? root) =>
       identical(root, _root) ? this : Treap._(root, _ctx);
 
-  /// Adds an [item].
+  /// Adds an [item] to the treap.
   ///
   /// If the [item] is already present in the treap, the original treap is returned.
   /// Otherwise, a new treap is returned with the item added.
   @pragma('vm:prefer-inline')
   Treap<T> add(T item) => _new(upsert(_root, item, false, _ctx));
 
-  /// Adds or updates an [item].
+  /// Adds or updates an [item] in the treap.
   ///
-  /// Returns a new treap, with [item] either added or updated.
+  /// Returns a new treap with [item] either added or updated.
   @pragma('vm:prefer-inline')
   Treap<T> addOrUpdate(T item) => _new(upsert(_root, item, true, _ctx));
 
-  /// Adds a range of [items].
+  /// Adds a range of [items] to the treap.
   ///
   /// Returns a new treap with the added [items]. If all the [items] are already
   /// present, the original treap is returned.
@@ -113,18 +111,18 @@ final class Treap<T> {
   Treap<T> addAll(Iterable<T> items) =>
       items.fold(this, (acc, i) => acc.add(i));
 
-  /// Erases an [item] from the treap, if it exists.
+  /// Removes an [item] from the treap, if it exists.
   ///
-  /// Returns a new treap without the erased [item]. If the [item] was not present,
+  /// Returns a new treap without the removed [item]. If the [item] was not present,
   /// the original treap is returned.
   @pragma('vm:prefer-inline')
   Treap<T> remove(T item) => _new(erase(_root, item, _ctx));
 
-  /// Whether this treap is empty.
+  /// Checks whether this treap is empty.
   bool get isEmpty => _root == null;
 
-  /// The size of this treap.
-  int get size => _root.size;
+  /// Returns the size of this treap.
+  int get size => _root?.size ?? 0;
 
   /// Finds the [item] in this treap.
   ///
@@ -132,10 +130,10 @@ final class Treap<T> {
   /// Otherwise returns `null`.
   T? find(T item) => node.find(_root, item, _ctx)?.item;
 
-  /// Whether an[item] exists in this treap.
+  /// Checks whether an [item] exists in this treap.
   bool has(T item) => find(item) != null;
 
-  /// The rank of an [item].
+  /// Returns the rank of an [item].
   ///
   /// For an [item] in this treap, the rank is the index of the item. For an item not
   /// in this treap, the rank is the index it would be at, if it was added.
@@ -144,34 +142,34 @@ final class Treap<T> {
   /// Selects an item in this treap by its [index].
   T select(int index) => node.select(_root, index, _ctx).item;
 
-  /// The values in this treap ordered by the [compare].
-  Iterable<T> get values => _root.inOrder().map((n) => n.item);
+  /// Returns the values in this treap ordered by the [compare].
+  Iterable<T> get values => _root?.inOrder().map((n) => n.item) ?? [];
 
-  /// The first item in this treap, or `null` if it is empty.
-  T? get firstOrDefault => _root.firstOrNull?.item;
+  /// Returns the first item in this treap, or `null` if it is empty.
+  T? get firstOrDefault => _root?.firstOrNull?.item;
 
-  /// The last item in this treap, or `null` if it is empty.
-  T? get lastOrDefault => _root.lastOrNull?.item;
+  /// Returns the last item in this treap, or `null` if it is empty.
+  T? get lastOrDefault => _root?.lastOrNull?.item;
 
-  /// The first item in this treap.
+  /// Returns the first item in this treap.
   ///
   /// Throws a [StateError] if it is empty.
   T get first => _root.first.item;
 
-  /// The last item in this treap.
+  /// Returns the last item in this treap.
   ///
   /// Throws a [StateError] if it is empty.
   T get last => _root.last.item;
 
-  /// The item preceding a given [item] in this treap.
+  /// Returns the item preceding a given [item] in this treap.
   ///
   /// Throws a [RangeError] if no such item exists. Note that [item] need not be
-  /// contained this treap.
+  /// contained in this treap.
   T prev(T item) => node.select(_root, rank(item) - 1, _ctx).item;
 
   /// Returns the next item in the treap for a given [item].
   ///
-  /// [item] need not be contained this treap.
+  /// [item] need not be contained in this treap.
   /// Throws a [RangeError] if no such item exists.
   T next(T item) => node.select(_root, rank(item) + 1, _ctx).item;
 
