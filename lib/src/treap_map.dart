@@ -4,7 +4,6 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'node.dart';
-import 'treap_base.dart';
 
 final _rnd = Random();
 typedef _Item<K, V> = ({K key, V? value});

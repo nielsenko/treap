@@ -4,10 +4,11 @@ import 'dart:math';
 
 import 'package:meta/meta.dart';
 
+import 'node.dart';
 import 'node.dart' as node;
 
 final _rnd = Random();
-typedef _Node<T> = node.PersistentNode<T>;
+typedef _Node<T> = PersistentNode<T>;
 _Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 32));
 
 /// A [fully persistent](https://en.wikipedia.org/wiki/Persistent_data_structure)
@@ -34,7 +35,7 @@ _Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 32));
 @immutable
 final class Treap<T> {
   final _Node<T>? _root;
-  final node.NodeContext<T, _Node<T>> _ctx;
+  final NodeContext<T, _Node<T>> _ctx;
 
   /// The [Comparator] used to determine element order.
   ///
@@ -47,7 +48,7 @@ final class Treap<T> {
   Treap([Comparator<T>? compare])
       : this._(
           null,
-          node.NodeContext(
+          NodeContext(
             compare ?? Comparable.compare as Comparator<T>,
             _createNode,
           ),
@@ -64,7 +65,7 @@ final class Treap<T> {
     //return Treap(compare).addAll(items);
 
     compare ??= Comparable.compare as Comparator<T>;
-    final ctx = node.NodeContext<T, _Node<T>>(compare, _createNode);
+    final ctx = NodeContext<T, _Node<T>>(compare, _createNode);
     _Node<T>? root;
     final it = items.iterator;
     if (it.moveNext()) {
@@ -74,10 +75,10 @@ final class Treap<T> {
         final next = it.current;
         if (compare(last, next) < 0) {
           // sorted allows for fast path
-          root = node.join(root, ctx.create(last = next), null, ctx);
+          root = join(root, ctx.create(last = next), null, ctx);
         } else {
           do {
-            root = node.upsert(root, it.current, false, ctx);
+            root = upsert(root, it.current, false, ctx);
           } while (it.moveNext());
         }
       }
@@ -96,13 +97,13 @@ final class Treap<T> {
   /// If the [item] is already present in the treap, the original treap is returned.
   /// Otherwise, a new treap is returned with the item added.
   @pragma('vm:prefer-inline')
-  Treap<T> add(T item) => _new(node.upsert(_root, item, false, _ctx));
+  Treap<T> add(T item) => _new(upsert(_root, item, false, _ctx));
 
   /// Adds or updates an [item].
   ///
   /// Returns a new treap, with [item] either added or updated.
   @pragma('vm:prefer-inline')
-  Treap<T> addOrUpdate(T item) => _new(node.upsert(_root, item, true, _ctx));
+  Treap<T> addOrUpdate(T item) => _new(upsert(_root, item, true, _ctx));
 
   /// Adds a range of [items].
   ///
@@ -117,7 +118,7 @@ final class Treap<T> {
   /// Returns a new treap without the erased [item]. If the [item] was not present,
   /// the original treap is returned.
   @pragma('vm:prefer-inline')
-  Treap<T> remove(T item) => _new(node.erase(_root, item, _ctx));
+  Treap<T> remove(T item) => _new(erase(_root, item, _ctx));
 
   /// Whether this treap is empty.
   bool get isEmpty => _root == null;
