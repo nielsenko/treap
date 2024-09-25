@@ -10,21 +10,109 @@ final class NodeContext<T, NodeT extends Node<T, NodeT>> {
 }
 
 sealed class Node<T, NodeT extends Node<T, NodeT>> {
-  final T item;
-  final int priority;
+  T get item;
+  int get priority;
   int get size;
   NodeT? get left;
   NodeT? get right;
-
-  Node(this.item, this.priority) {
-    checkInvariant();
-  }
 
   NodeT withLeft(NodeT? left);
   NodeT withRight(NodeT? right);
   NodeT withItem(T item);
   NodeT copy();
+}
 
+@immutable
+final class PersistentNode<T> implements Node<T, PersistentNode<T>> {
+  @override
+  final T item;
+  @override
+  final int priority;
+  @override
+  final int size;
+  @override
+  final PersistentNode<T>? left, right;
+
+  PersistentNode(this.item, this.priority, {this.left, this.right})
+      : size = 1 + left.size + right.size;
+
+  /// Create a copy with the left child set to [left].
+  @pragma('vm:prefer-inline')
+  @override
+  PersistentNode<T> withLeft(PersistentNode<T>? left) =>
+      PersistentNode(item, priority, left: left, right: right);
+
+  /// Create a copy with the right child set to [right].
+  @pragma('vm:prefer-inline')
+  @override
+  PersistentNode<T> withRight(PersistentNode<T>? right) =>
+      PersistentNode(item, priority, left: left, right: right);
+
+  /// Create a copy with the item set to [item].
+  @pragma('vm:prefer-inline')
+  @override
+  PersistentNode<T> withItem(T item) =>
+      PersistentNode(item, priority, left: left, right: right);
+
+  /// Create a copy of this node.
+  @pragma('vm:prefer-inline')
+  @override
+  PersistentNode<T> copy() => this; // immutable
+}
+
+final class MutableNode<T> implements Node<T, MutableNode<T>> {
+  @override
+  T item;
+  @override
+  final int priority;
+  @override
+  int size = -1;
+  @override
+  MutableNode<T>? left, right;
+
+  MutableNode(this.item, this.priority, {this.left, this.right}) {
+    _updateSize();
+  }
+
+  void _updateSize() {
+    size = 1 + left.size + right.size;
+  }
+
+  /// Update the left child to [left].
+  @pragma('vm:prefer-inline')
+  @override
+  MutableNode<T> withLeft(MutableNode<T>? left) {
+    this.left = left;
+    _updateSize();
+    return this;
+  }
+
+  /// Update the right child to [right].
+  @pragma('vm:prefer-inline')
+  @override
+  MutableNode<T> withRight(MutableNode<T>? right) {
+    this.right = right;
+    _updateSize();
+    return this;
+  }
+
+  /// Create a copy with the item set to [item].
+  @pragma('vm:prefer-inline')
+  @override
+  MutableNode<T> withItem(T item) {
+    this.item = item;
+    return this;
+  }
+
+  /// Create a copy of this node.
+  @pragma('vm:prefer-inline')
+  @override
+  MutableNode<T> copy() => this;
+}
+
+Never _noElement() => throw StateError('No element');
+
+extension NodeEx<T, NodeT extends Node<T, NodeT>> on NodeT {
   @pragma('vm:prefer-inline')
   (NodeT?, T, NodeT?) get expose => (left, item, right);
 
@@ -57,10 +145,10 @@ sealed class Node<T, NodeT extends Node<T, NodeT>> {
   }
 
   /// The minimum item in the treap.
-  NodeT get first => left == null ? this as NodeT : left!.first;
+  NodeT get first => left == null ? this : left!.first;
 
   /// The maximum item in the treap.
-  NodeT get last => right == null ? this as NodeT : right!.last;
+  NodeT get last => right == null ? this : right!.last;
 
   void checkInvariant() {
     assert(() {
@@ -75,88 +163,7 @@ sealed class Node<T, NodeT extends Node<T, NodeT>> {
   }
 }
 
-@immutable
-final class PersistentNode<T> extends Node<T, PersistentNode<T>> {
-  @override
-  final PersistentNode<T>? left, right;
-  @override
-  final int size;
-
-  PersistentNode(super.item, super.priority, {this.left, this.right})
-      : size = 1 + left.size + right.size;
-
-  /// Create a copy with the left child set to [left].
-  @pragma('vm:prefer-inline')
-  @override
-  PersistentNode<T> withLeft(PersistentNode<T>? left) =>
-      PersistentNode(item, priority, left: left, right: right);
-
-  /// Create a copy with the right child set to [right].
-  @pragma('vm:prefer-inline')
-  @override
-  PersistentNode<T> withRight(PersistentNode<T>? right) =>
-      PersistentNode(item, priority, left: left, right: right);
-
-  /// Create a copy with the item set to [item].
-  @pragma('vm:prefer-inline')
-  @override
-  PersistentNode<T> withItem(T item) =>
-      PersistentNode(item, priority, left: left, right: right);
-
-  /// Create a copy of this node.
-  @pragma('vm:prefer-inline')
-  @override
-  PersistentNode<T> copy() => this; // immutable
-}
-
-final class MutableNode<T> extends Node<T, MutableNode<T>> {
-  @override
-  MutableNode<T>? left, right;
-  @override
-  int size = -1;
-
-  MutableNode(super.item, super.priority, {this.left, this.right}) {
-    _updateSize();
-  }
-
-  void _updateSize() {
-    size = 1 + left.size + right.size;
-  }
-
-  /// Update the left child to [left].
-  @pragma('vm:prefer-inline')
-  @override
-  MutableNode<T> withLeft(MutableNode<T>? left) {
-    this.left = left;
-    _updateSize();
-    return this;
-  }
-
-  /// Update the right child to [right].
-  @pragma('vm:prefer-inline')
-  @override
-  MutableNode<T> withRight(MutableNode<T>? right) {
-    this.right = right;
-    _updateSize();
-    return this;
-  }
-
-  /// Create a copy with the item set to [item].
-  // TODO: Should should this update in place?
-  @pragma('vm:prefer-inline')
-  @override
-  MutableNode<T> withItem(T item) =>
-      MutableNode(item, priority, left: left, right: right);
-
-  /// Create a copy of this node.
-  @pragma('vm:prefer-inline')
-  @override
-  MutableNode<T> copy() => this; // TODO!
-}
-
-Never _noElement() => throw StateError('No element');
-
-extension NodeEx<T, NodeT extends Node<T, NodeT>> on NodeT? {
+extension NullableNodeEx<T, NodeT extends Node<T, NodeT>> on NodeT? {
   @pragma('vm:prefer-inline')
   int get size => this?.size ?? 0;
 
@@ -203,6 +210,9 @@ extension NodeEx<T, NodeT extends Node<T, NodeT>> on NodeT? {
   }
 }
 
+(NodeT?, T, NodeT?) expose<T, NodeT extends Node<T, NodeT>>(NodeT self) =>
+    (self.left, self.item, self.right);
+
 NodeT join<T, NodeT extends Node<T, NodeT>>(
   NodeT? low,
   NodeT middle,
@@ -230,7 +240,7 @@ NodeT join<T, NodeT extends Node<T, NodeT>>(
   NodeContext<T, NodeT> ctx,
 ) {
   if (self == null) return const (null, false, null);
-  final (l, i, r) = self.expose;
+  final (l, T i, r) = self.expose;
   final order = ctx.compare(pivot, i);
   if (order < 0) {
     final (ll, b, lr) = split(l, pivot, ctx);
@@ -270,7 +280,7 @@ NodeT upsert<T, NodeT extends Node<T, NodeT>>(
   NodeContext<T, NodeT> ctx,
 ) {
   if (self == null) return ctx.create(item);
-  final (l, i, r) = self.expose;
+  final (l, T i, r) = self.expose;
   final order = ctx.compare(item, i);
   if (order < 0) return join(upsert(l, item, allowUpdate, ctx), self, r, ctx);
   if (order > 0) return join(l, self, upsert(r, item, allowUpdate, ctx), ctx);
@@ -283,7 +293,7 @@ NodeT? erase<T, NodeT extends Node<T, NodeT>>(
   NodeContext<T, NodeT> ctx,
 ) {
   if (self == null) return null;
-  final (l, i, r) = self.expose;
+  final (l, T i, r) = self.expose;
   final order = ctx.compare(item, i);
   if (order < 0) return join(erase(l, item, ctx), self, r, ctx);
   if (order > 0) return join(l, self, erase(r, item, ctx), ctx);
@@ -308,7 +318,7 @@ int rank<T, NodeT extends Node<T, NodeT>>(
   NodeContext<T, NodeT> ctx,
 ) {
   if (self == null) return 0; // {}
-  final (l, i, r) = self.expose;
+  final (l, T i, r) = self.expose;
   final order = ctx.compare(item, i);
   if (order < 0) return rank(l, item, ctx);
   if (order > 0) return 1 + l.size + rank(r, item, ctx);
