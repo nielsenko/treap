@@ -105,9 +105,9 @@ final class MutableNode<T> implements Node<T, MutableNode<T>> {
   }
 
   /// Create a copy of this node.
-  @pragma('vm:prefer-inline')
   @override
-  MutableNode<T> copy() => this;
+  MutableNode<T> copy() =>
+      MutableNode(item, priority, left: left?.copy(), right: right?.copy());
 }
 
 Never _noElement() => throw StateError('No element');
