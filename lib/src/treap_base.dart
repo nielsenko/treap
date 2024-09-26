@@ -122,7 +122,7 @@ final class Treap<T> {
   bool get isEmpty => _root == null;
 
   /// Returns the size of this treap.
-  int get size => _root?.size ?? 0;
+  int get size => _root.size;
 
   /// Finds the [item] in this treap.
   ///
@@ -143,13 +143,13 @@ final class Treap<T> {
   T select(int index) => node.select(_root, index, _ctx).item;
 
   /// Returns the values in this treap ordered by the [compare].
-  Iterable<T> get values => _root?.inOrder().map((n) => n.item) ?? [];
+  Iterable<T> get values => _root.inOrder().map((n) => n.item) ?? [];
 
   /// Returns the first item in this treap, or `null` if it is empty.
-  T? get firstOrDefault => _root?.firstOrNull?.item;
+  T? get firstOrDefault => _root.firstOrNull?.item;
 
   /// Returns the last item in this treap, or `null` if it is empty.
-  T? get lastOrDefault => _root?.lastOrNull?.item;
+  T? get lastOrDefault => _root.lastOrNull?.item;
 
   /// Returns the first item in this treap.
   ///
