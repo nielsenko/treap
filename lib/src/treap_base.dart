@@ -2,11 +2,12 @@ import 'dart:math';
 
 import 'package:meta/meta.dart';
 
+import 'immutable_node.dart';
 import 'node.dart';
 import 'node.dart' as node;
 
 final _rnd = Random();
-typedef _Node<T> = PersistentNode<T>;
+typedef _Node<T> = ImmutableNode<T>;
 _Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 32));
 
 /// A [fully persistent](https://en.wikipedia.org/wiki/Persistent_data_structure)

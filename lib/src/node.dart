@@ -1,6 +1,5 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
-import 'package:meta/meta.dart';
 
 final class NodeContext<T, NodeT extends Node<T, NodeT>> {
   final Comparator<T> compare;
@@ -9,7 +8,7 @@ final class NodeContext<T, NodeT extends Node<T, NodeT>> {
   const NodeContext(this.compare, this.create);
 }
 
-sealed class Node<T, NodeT extends Node<T, NodeT>> {
+abstract class Node<T, NodeT extends Node<T, NodeT>> {
   T get item;
   int get priority;
   int get size;
@@ -20,94 +19,6 @@ sealed class Node<T, NodeT extends Node<T, NodeT>> {
   NodeT withRight(NodeT? right);
   NodeT withItem(T item);
   NodeT copy();
-}
-
-@immutable
-final class PersistentNode<T> implements Node<T, PersistentNode<T>> {
-  @override
-  final T item;
-  @override
-  final int priority;
-  @override
-  final int size;
-  @override
-  final PersistentNode<T>? left, right;
-
-  PersistentNode(this.item, this.priority, {this.left, this.right})
-      : size = 1 + left.size + right.size;
-
-  /// Create a copy with the left child set to [left].
-  @pragma('vm:prefer-inline')
-  @override
-  PersistentNode<T> withLeft(PersistentNode<T>? left) =>
-      PersistentNode(item, priority, left: left, right: right);
-
-  /// Create a copy with the right child set to [right].
-  @pragma('vm:prefer-inline')
-  @override
-  PersistentNode<T> withRight(PersistentNode<T>? right) =>
-      PersistentNode(item, priority, left: left, right: right);
-
-  /// Create a copy with the item set to [item].
-  @pragma('vm:prefer-inline')
-  @override
-  PersistentNode<T> withItem(T item) =>
-      PersistentNode(item, priority, left: left, right: right);
-
-  /// Create a copy of this node.
-  @pragma('vm:prefer-inline')
-  @override
-  PersistentNode<T> copy() => this; // immutable
-}
-
-final class MutableNode<T> implements Node<T, MutableNode<T>> {
-  @override
-  T item;
-  @override
-  final int priority;
-  @override
-  int size = -1;
-  @override
-  MutableNode<T>? left, right;
-
-  MutableNode(this.item, this.priority, {this.left, this.right}) {
-    _updateSize();
-  }
-
-  void _updateSize() {
-    size = 1 + left.size + right.size;
-  }
-
-  /// Update the left child to [left].
-  @pragma('vm:prefer-inline')
-  @override
-  MutableNode<T> withLeft(MutableNode<T>? left) {
-    this.left = left;
-    _updateSize();
-    return this;
-  }
-
-  /// Update the right child to [right].
-  @pragma('vm:prefer-inline')
-  @override
-  MutableNode<T> withRight(MutableNode<T>? right) {
-    this.right = right;
-    _updateSize();
-    return this;
-  }
-
-  /// Create a copy with the item set to [item].
-  @pragma('vm:prefer-inline')
-  @override
-  MutableNode<T> withItem(T item) {
-    this.item = item;
-    return this;
-  }
-
-  /// Create a copy of this node.
-  @override
-  MutableNode<T> copy() =>
-      MutableNode(item, priority, left: left?.copy(), right: right?.copy());
 }
 
 Never _noElement() => throw StateError('No element');
@@ -209,9 +120,6 @@ extension NullableNodeEx<T, NodeT extends Node<T, NodeT>> on NodeT? {
     yield* self.right.preOrder();
   }
 }
-
-(NodeT?, T, NodeT?) expose<T, NodeT extends Node<T, NodeT>>(NodeT self) =>
-    (self.left, self.item, self.right);
 
 NodeT join<T, NodeT extends Node<T, NodeT>>(
   NodeT? low,

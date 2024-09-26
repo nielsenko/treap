@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
+import 'package:treap/src/immutable_node.dart';
 import 'package:treap/src/node.dart';
 import 'package:treap/treap.dart';
 import 'package:test/test.dart';
@@ -174,8 +175,8 @@ void main() {
 
   group('Node', () {
     final rnd = Random(42);
-    PersistentNode<int> node(int value) =>
-        PersistentNode<int>(value, rnd.nextInt(1 << 32));
+    ImmutableNode<int> node(int value) =>
+        ImmutableNode<int>(value, rnd.nextInt(1 << 32));
 
     final ctx = NodeContext(
       Comparable.compare as Comparator<int>,
@@ -233,13 +234,13 @@ void main() {
     test('preOrder, inOrder, postOrder', () {
       final items = [5, 6, 3, 9, 1, 8, 2, 4, 7]; // evil order
       var count = 0;
-      node(int i) => PersistentNode(i, count++);
+      node(int i) => ImmutableNode(i, count++);
       final ctx = NodeContext(
         Comparable.compare as Comparator<int>,
         node,
       );
       final top = items.fold(
-        PersistentNode(0, 0), // will have same priority (5, 0)
+        ImmutableNode(0, 0), // will have same priority (5, 0)
         (acc, i) => upsert(acc, i, true, ctx),
       );
       expect(

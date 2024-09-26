@@ -3,10 +3,11 @@
 import 'dart:collection';
 import 'dart:math';
 
+import 'immutable_node.dart';
 import 'node.dart';
 import 'node.dart' as node;
 
-typedef _Node<T> = PersistentNode<T>;
+typedef _Node<T> = ImmutableNode<T>;
 final _rnd = Random();
 _Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 32));
 
