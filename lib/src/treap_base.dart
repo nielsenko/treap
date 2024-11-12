@@ -74,7 +74,7 @@ final class Treap<T> {
         final next = it.current;
         if (compare(last, next) < 0) {
           // Fast path for sorted items
-          root = join(root, ctx.create(last = next), null, ctx);
+          root = join(root, ctx.create(last = next), null);
         } else {
           do {
             root = upsert(root, it.current, false, ctx);

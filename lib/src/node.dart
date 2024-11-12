@@ -121,14 +121,11 @@ extension NullableNodeEx<T, NodeT extends Node<T, NodeT>> on NodeT? {
   }
 }
 
-NodeT join<T, NodeT extends Node<T, NodeT>>(
+NodeT join<NodeT extends Node<dynamic, NodeT>>(
   NodeT? low,
   NodeT middle,
   NodeT? high,
-  NodeContext<T, NodeT> ctx,
 ) {
-  assert(low == null || ctx.compare(low.last.item, middle.item) < 0);
-  assert(high == null || ctx.compare(middle.item, high.first.item) < 0);
   final p = middle.priority;
   if (p > low.priority && //
       p > high.priority) {
@@ -137,9 +134,9 @@ NodeT join<T, NodeT extends Node<T, NodeT>>(
     return middle.withLeft(low).withRight(high);
   }
   if (low.priority > high.priority) {
-    return low!.withRight(join(low.right, middle, high, ctx));
+    return low!.withRight(join(low.right, middle, high));
   }
-  return high!.withLeft(join(low, middle, high.left, ctx));
+  return high!.withLeft(join(low, middle, high.left));
 }
 
 (NodeT?, bool, NodeT?) split<T, NodeT extends Node<T, NodeT>>(
@@ -152,33 +149,31 @@ NodeT join<T, NodeT extends Node<T, NodeT>>(
   final order = ctx.compare(pivot, i);
   if (order < 0) {
     final (ll, b, lr) = split(l, pivot, ctx);
-    return (ll, b, join(lr, self, r, ctx));
+    return (ll, b, join(lr, self, r));
   }
   if (order > 0) {
     final (rl, b, rr) = split(r, pivot, ctx);
-    return (join(l, self, rl, ctx), b, rr);
+    return (join(l, self, rl), b, rr);
   }
   return (l, true, r);
 }
 
-(NodeT?, NodeT) splitLast<T, NodeT extends Node<T, NodeT>>(
+(NodeT?, NodeT) splitLast<NodeT extends Node<dynamic, NodeT>>(
   NodeT self,
-  NodeContext<T, NodeT> ctx,
 ) {
   final (l, _, r) = self.expose;
   if (r == null) return (l, self);
-  final (rl, last) = splitLast(r, ctx);
-  return (join(l, self, rl, ctx), last);
+  final (rl, last) = splitLast(r);
+  return (join(l, self, rl), last);
 }
 
-NodeT? join2<T, NodeT extends Node<T, NodeT>>(
+NodeT? join2<NodeT extends Node<dynamic, NodeT>>(
   NodeT? left,
   NodeT? right,
-  NodeContext<T, NodeT> ctx,
 ) {
   if (left == null) return right;
-  final (l, last) = splitLast(left, ctx);
-  return join(l, last, right, ctx);
+  final (l, last) = splitLast(left);
+  return join(l, last, right);
 }
 
 NodeT upsert<T, NodeT extends Node<T, NodeT>>(
@@ -190,8 +185,8 @@ NodeT upsert<T, NodeT extends Node<T, NodeT>>(
   if (self == null) return ctx.create(item);
   final (l, T i, r) = self.expose;
   final order = ctx.compare(item, i);
-  if (order < 0) return join(upsert(l, item, allowUpdate, ctx), self, r, ctx);
-  if (order > 0) return join(l, self, upsert(r, item, allowUpdate, ctx), ctx);
+  if (order < 0) return join(upsert(l, item, allowUpdate, ctx), self, r);
+  if (order > 0) return join(l, self, upsert(r, item, allowUpdate, ctx));
   return allowUpdate ? self.withItem(item) : self;
 }
 
@@ -203,9 +198,9 @@ NodeT? erase<T, NodeT extends Node<T, NodeT>>(
   if (self == null) return null;
   final (l, T i, r) = self.expose;
   final order = ctx.compare(item, i);
-  if (order < 0) return join(erase(l, item, ctx), self, r, ctx);
-  if (order > 0) return join(l, self, erase(r, item, ctx), ctx);
-  return join2(l, r, ctx);
+  if (order < 0) return join(erase(l, item, ctx), self, r);
+  if (order > 0) return join(l, self, erase(r, item, ctx));
+  return join2(l, r);
 }
 
 NodeT? find<T, NodeT extends Node<T, NodeT>>(
@@ -262,7 +257,6 @@ NodeT? union<T, NodeT extends Node<T, NodeT>>(
     union(self.left, l, ctx),
     self,
     union(self.right, r, ctx),
-    ctx,
   );
 }
 
@@ -275,7 +269,7 @@ NodeT? intersection<T, NodeT extends Node<T, NodeT>>(
   final (l, b, r) = split(other, self.item, ctx);
   final low = intersection(self.left, l, ctx);
   final high = intersection(self.right, r, ctx);
-  return b ? join(low, self, high, ctx) : join2(low, high, ctx);
+  return b ? join(low, self, high) : join2(low, high);
 }
 
 NodeT? difference<T, NodeT extends Node<T, NodeT>>(
@@ -288,7 +282,7 @@ NodeT? difference<T, NodeT extends Node<T, NodeT>>(
   final (l, b, r) = split(other, self.item, ctx);
   final low = difference(self.left, l, ctx);
   final high = difference(self.right, r, ctx);
-  return b ? join2(low, high, ctx) : join(low, self, high, ctx);
+  return b ? join2(low, high) : join(low, self, high);
 }
 
 NodeT? take<T, NodeT extends Node<T, NodeT>>(
