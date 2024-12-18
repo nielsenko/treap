@@ -144,7 +144,7 @@ final class Treap<T> {
   T select(int index) => node.select(_root, index, _ctx).item;
 
   /// Returns the values in this treap ordered by the [compare].
-  Iterable<T> get values => _root.inOrder().map((n) => n.item) ?? [];
+  Iterable<T> get values => _root.inOrder().map((n) => n.item);
 
   /// Returns the first item in this treap, or `null` if it is empty.
   T? get firstOrDefault => _root.firstOrNull?.item;
