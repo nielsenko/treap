@@ -1,2 +1,8 @@
 # For lint rules and documentation, see https://github.com/dart-lang/lints
 include: package:lints/recommended.yaml
+
+analyzer:
+  language:
+    strict-casts: true # see https://github.com/dart-lang/language/blob/main/resources/type-system/strict-casts.md
+    strict-inference: true # see https://github.com/dart-lang/language/blob/main/resources/type-system/strict-inference.md
+    strict-raw-types: true # see https://github.com/dart-lang/language/blob/main/resources/type-system/strict-raw-types.md

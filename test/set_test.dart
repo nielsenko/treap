@@ -69,6 +69,7 @@ void main() {
 
     test('length', () {
       final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
+      expect(t.toList().length, 5);
       expect(t.length, 5);
     });
 
@@ -83,7 +84,7 @@ void main() {
     test('clear', () {
       final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
       t.clear();
-      expect(t, []);
+      expect(t, <int>[]);
     });
 
     test('elementAt', () {
@@ -113,18 +114,18 @@ void main() {
       final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
       expect(t.skip(0), [1, 2, 3, 4, 5]);
       expect(t.skip(2), [3, 4, 5]);
-      expect(t.skip(6), []);
+      expect(t.skip(6), <int>[]);
     });
 
     test('skipWhile', () {
       final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
       expect(t.skipWhile((e) => e < 3), [3, 4, 5]);
-      expect(t.skipWhile((e) => e < 6), []);
+      expect(t.skipWhile((e) => e < 6), <int>[]);
     });
 
     test('take', () {
       final t = TreapSet(_compare)..addAll([1, 2, 3, 4, 5]);
-      expect(t.take(0), []);
+      expect(t.take(0), <int>[]);
       expect(t.take(2), [1, 2]);
       expect(t.take(6), [1, 2, 3, 4, 5]);
     });

@@ -2,15 +2,18 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
+import 'package:treap/src/immutable_node.dart';
 import 'package:treap/src/node.dart';
 import 'package:treap/treap.dart';
 import 'package:test/test.dart';
 
+import 'util.dart';
+
 void main() {
   group('Treap', () {
     group('creation', () {
-      test('add, erase, build', () {
-        final x = Treap<num>() + 1;
+      test('add, addOrUpdate, addAll, of(build), and remove', () {
+        final x = Treap<int>() + 1;
         final y = x.add(1);
         final z = x.addOrUpdate(1);
         expect(x, y);
@@ -22,51 +25,66 @@ void main() {
           ..add(3);
         expect(x.values, [1]);
 
-        final big = Treap<num>.of([9, 8, 7, 6, 1, 2, 3, 4, 5]..shuffle());
-        expect(big.values, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        final many = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        final big = Treap.of(many..mix()); // shuffle,
+        final big2 = Treap<int>().addAll(many..mix()); // shuffle, then ..
+        expect(big.values, orderedEquals(big2.values));
+        expect(
+          big.values,
+          orderedEquals(many..sort(big.compare)), // .. sort again
+        );
 
-        expect(big.erase(1).erase(0).erase(5).values, [2, 3, 4, 6, 7, 8, 9]);
+        expect(big.remove(1).remove(0).remove(5).values, [2, 3, 4, 6, 7, 8, 9]);
 
-        final w = Treap<num>.of([1]);
+        final w = Treap.of([1]);
+        expect(x.values, w.values);
         expect(x, isNot(w)); // equal items does not imply equality
       });
 
       test('empty', () {
         final t = Treap<String>();
         expect(t.isEmpty, isTrue);
-        expect(t.values, []);
+        expect(t.values, const <String>[]);
       });
 
       test('duplicates', () {
-        final t = Treap<num>.of([1, 1, 1, 1, 1]);
+        final t = Treap.of([1, 1, 1, 1, 1]);
         expect(t.values, [1]);
+      });
+
+      test('copy', () {
+        final t = Treap.of([1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
+        final copy = t.copy();
+        expect(t.values, copy.values);
+        expect(t, copy); // for an immutable treap, this is true too
+        expect(identical(t, copy), isTrue);
       });
     });
 
     group('retrieval', () {
       test('find, has, rank, select', () {
         const max = 1000;
-        final items = [for (int i = 0; i < max; ++i) i]..shuffle();
-        final t = Treap<num>.of(items);
+        final items = [for (int i = 0; i < max; ++i) i]..mix();
+        final t = Treap.of(items);
         for (final i in items) {
           expect(t.find(i), isNotNull);
           expect(t.rank(t.find(i)!), i);
           expect(t.has(i), isTrue);
           expect(t[t.rank(i)], i);
         }
-        final foreigners = [for (int i = max; i < 2 * max; ++i) i]..shuffle();
+        final foreigners = [for (int i = max; i < 2 * max; ++i) i]..mix();
         for (final i in foreigners) {
           expect(t.find(i), isNull);
           expect(t.rank(i), max);
           expect(t.has(i), isFalse);
           expect(() => t[t.rank(i)], throwsRangeError);
         }
-        final empty = items.fold(t, (acc, i) => acc.erase(i));
+        final empty = items.fold(t, (acc, i) => acc.remove(i));
         expect(empty.isEmpty, isTrue);
       });
 
       test('rank, select', () {
-        final top = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final top = Treap.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
         expect(top.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         expect(
             top.values.map((i) => top.rank(i)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -84,12 +102,12 @@ void main() {
 
     group('iterator', () {
       test('values', () {
-        final t = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final t = Treap.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
         expect(t.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       });
 
       test('take, skip', () {
-        final t = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final t = Treap.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
         for (var i = 0; i < t.size + 10; ++i) {
           expect(t.take(i).values, t.values.take(i));
           expect(t.skip(i).values, t.values.skip(i));
@@ -111,12 +129,12 @@ void main() {
         expect(() => empty.last, throwsStateError);
         expect(empty.lastOrDefault, null);
 
-        final single = Treap<num>.of([1]);
+        final single = Treap.of([1]);
         expect(single.first, single.last);
         expect(single.first, single.firstOrDefault);
         expect(single.first, single.lastOrDefault);
 
-        final many = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final many = Treap.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
         expect(many.first, many.values.first);
         expect(many.first, 0);
         expect(many.last, many.values.last);
@@ -124,7 +142,7 @@ void main() {
       });
 
       test('prev, next', () {
-        final t = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..shuffle());
+        final t = Treap.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
         final l = t.values.toList();
         for (var i = 1; i < l.length - 1; ++i) {
           expect(t.prev(t.select(i)), l[i - 1]);
@@ -160,8 +178,8 @@ void main() {
         final x = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
         final y = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
 
-        final tx = Treap<num>.of(x);
-        final ty = Treap<num>.of(y);
+        final tx = Treap.of(x);
+        final ty = Treap.of(y);
 
         expect((tx | ty).values, x.union(y));
         expect((tx & ty).values, x.intersection(y));
@@ -171,18 +189,22 @@ void main() {
   });
 
   group('Node', () {
-    final rnd = Random(42 ^ 42);
-    Node<num> node(num value) =>
-        PersistentNode<num>(value, rnd.nextInt(1 << 32));
+    final rnd = Random(42);
+    ImmutableNode<int> node(int value) =>
+        ImmutableNode<int>(value, rnd.nextInt(1 << 32));
+
+    final ctx = NodeContext(
+      Comparable.compare as Comparator<int>,
+      node,
+    );
 
     test('add, find, erase, inOrder', () {
       final first = node(1);
-      final (root: again, old: _) = first.upsert(node(1), Comparable.compare);
-      final (root: second, old: _) = first.upsert(node(2), Comparable.compare);
-      final (root: third, old: _) = second.upsert(node(3), Comparable.compare);
-      final (root: another, old: _) =
-          second.upsert(node(3), Comparable.compare);
-      final (root: forth, old: _) = third.upsert(node(0), Comparable.compare);
+      final again = upsert(first, 1, true, ctx);
+      final second = upsert(first, 2, true, ctx);
+      final third = upsert(second, 3, true, ctx);
+      final another = upsert(second, 3, true, ctx);
+      final forth = upsert(third, 0, true, ctx);
 
       expect(first.inOrder().map((n) => n.item), [1]);
       expect(again.inOrder().map((n) => n.item), [1]);
@@ -193,44 +215,48 @@ void main() {
       expect(identical(third, another), false);
       expect(forth.inOrder().map((n) => n.item), [0, 1, 2, 3]);
 
-      expect(first.find(1, Comparable.compare), isNotNull);
-      expect(first.find(2, Comparable.compare), isNull);
+      expect(find(first, 1, ctx), isNotNull);
+      expect(find(first, 2, ctx), isNull);
 
-      expect(second.find(1, Comparable.compare), isNotNull);
-      expect(second.find(2, Comparable.compare), isNotNull);
+      expect(find(second, 1, ctx), isNotNull);
+      expect(find(second, 2, ctx), isNotNull);
 
-      final (root: fifth, old: _) = forth.erase(0, Comparable.compare);
+      final fifth = erase(forth, 0, ctx);
       expect(fifth!.inOrder().map((n) => n.item), [1, 2, 3]);
       expect(identical(third, fifth), false);
 
       expect(
-        forth.erase(2, Comparable.compare).root!.inOrder().map((n) => n.item),
+        erase(forth, 2, ctx)!.inOrder().map((n) => n.item),
         [0, 1, 3],
       );
     });
 
     test('rank, select', () {
-      final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold(
-          node(0), (acc, i) => acc.upsert(node(i), Comparable.compare).root);
+      final top = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+          .reversed
+          .fold(node(0), (acc, i) => upsert(acc, i, true, ctx));
       expect(top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      expect(top.inOrder().map((n) => top.rank(n.item, Comparable.compare)),
+      expect(top.inOrder().map((n) => rank(top, n.item, ctx)),
           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      expect(top.rank(-1, Comparable.compare), 0); // -1 goes before all
-      expect(top.rank(100, Comparable.compare), 10); // 100 goes after all
+      expect(rank(top, -1, ctx), 0); // -1 goes before all
+      expect(rank(top, 100, ctx), 10); // 100 goes after all
       expect(
           [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-              .fold(true, (acc, i) => acc && top.select(i).item == i),
+              .fold(true, (acc, i) => acc && select(top, i, ctx).item == i),
           isTrue);
     });
 
     test('preOrder, inOrder, postOrder', () {
-      // Deterministic shaped treap despite shuffle
       final items = [5, 6, 3, 9, 1, 8, 2, 4, 7]; // evil order
-      print(items);
-      final top = items.fold<Node<num>>(
-        PersistentNode<num>(0, 0), // will have same priority (5,0)
-        (acc, i) =>
-            acc.upsert(PersistentNode<num>(i, 5 - i), Comparable.compare).root,
+      var count = 0;
+      node(int i) => ImmutableNode(i, count++);
+      final ctx = NodeContext(
+        Comparable.compare as Comparator<int>,
+        node,
+      );
+      final top = items.fold(
+        ImmutableNode(0, 0), // will have same priority (5, 0)
+        (acc, i) => upsert(acc, i, true, ctx),
       );
       expect(
         top.inOrder().map((n) => n.item),
@@ -238,11 +264,11 @@ void main() {
       );
       expect(
         top.preOrder().map((n) => n.item),
-        [1, 0, 2, 3, 4, 5, 6, 7, 8, 9],
+        [7, 4, 2, 1, 0, 3, 6, 5, 8, 9],
       );
       expect(
         top.postOrder().map((n) => n.item),
-        [0, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+        [0, 1, 3, 2, 5, 6, 4, 9, 8, 7],
       );
     });
   });

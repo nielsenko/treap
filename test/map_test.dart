@@ -63,8 +63,8 @@ void main() {
       tm[2] = 'two';
       tm[3] = 'three';
 
-      final keys = [];
-      final values = [];
+      final keys = <int>[];
+      final values = <String>[];
 
       for (final entry in tm.entries) {
         keys.add(entry.key);
@@ -95,8 +95,8 @@ void main() {
       tm[2] = 'two';
       tm[3] = 'three';
 
-      final keys = [];
-      final values = [];
+      final keys = <int>[];
+      final values = <String>[];
 
       tm.forEach((key, value) {
         keys.add(key);

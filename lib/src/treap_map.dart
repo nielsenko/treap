@@ -1,37 +1,54 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:collection';
-import 'package:treap/src/treap_base.dart';
+import 'dart:math';
+
+import 'immutable_node.dart';
+import 'node.dart';
+
+final _rnd = Random();
+typedef _Item<K, V> = ({K key, V? value});
+typedef _Node<K, V> = ImmutableNode<_Item<K, V>>;
+_Node<K, V> _createNode<K, V>(_Item<K, V> item) =>
+    _Node(item, _rnd.nextInt(1 << 32));
 
 class TreapMap<K, V> extends MapBase<K, V> {
-  Treap<({K key, V? value})> _root;
+  _Node<K, V>? _root;
+  NodeContext<_Item<K, V>, _Node<K, V>> _ctx;
 
-  TreapMap._(this._root);
+  TreapMap._(this._root, this._ctx);
 
   TreapMap(Comparator<K> compare)
-      : this._(Treap((a, b) => compare(a.key, b.key)));
+      : this._(
+          null,
+          NodeContext(
+            (a, b) => compare(a.key, b.key),
+            _createNode,
+          ),
+        );
 
   @override
-  V? operator [](covariant K key) => _root.find((key: key, value: null))?.value;
+  V? operator [](covariant K key) =>
+      find(_root, (key: key, value: null), _ctx)?.item.value;
 
   @override
   void operator []=(K key, V value) =>
-      _root = _root.addOrUpdate((key: key, value: value));
+      _root = upsert(_root, (key: key, value: value), true, _ctx);
 
   @override
-  void clear() => _root = Treap(_root.compare);
+  void clear() => _root = null;
 
   @override
-  Iterable<K> get keys => _root.values.map((e) => e.key);
+  Iterable<K> get keys => _root.inOrder().map((n) => n.item.key);
 
   @override
-  Iterable<V> get values => _root.values.map((e) => e.value as V);
+  Iterable<V> get values => _root.inOrder().map((n) => n.item.value as V);
 
   @override
   V? remove(covariant K key) {
-    final toDie = _root.find((key: key, value: null));
-    if (toDie != null) _root = _root.erase(toDie);
-    return toDie?.value;
+    final toDie = this[key];
+    if (toDie != null) _root = erase(_root, (key: key, value: null), _ctx);
+    return toDie;
   }
 
   @override
@@ -39,19 +56,22 @@ class TreapMap<K, V> extends MapBase<K, V> {
 
   @override
   bool containsKey(covariant K key) =>
-      _root.find((key: key, value: null)) != null;
+      find(_root, (key: key, value: null), _ctx) != null;
 
   @override
-  Iterable<MapEntry<K, V>> get entries =>
-      _root.values.map((e) => MapEntry(e.key, e.value as V));
+  Iterable<MapEntry<K, V>> get entries => _root.inOrder().map((n) {
+        final i = n.item;
+        return MapEntry(i.key, i.value as V);
+      });
 
   @override
   void forEach(void Function(K key, V value) action) {
-    for (final e in _root.values) {
-      action(e.key, e.value as V);
+    for (final n in _root.inOrder()) {
+      final i = n.item;
+      action(i.key, i.value as V);
     }
   }
 
   @override
-  bool get isEmpty => _root.isEmpty;
+  bool get isEmpty => _root == null;
 }

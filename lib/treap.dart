@@ -3,7 +3,7 @@
 
 /// An implementation of the [Treap]
 /// data structure for [Dart](https://dart.dev)
-library treap;
+library;
 
 export 'src/treap_base.dart';
 export 'src/treap_map.dart';

@@ -16,7 +16,11 @@ homepage: https://github.com/nielsenko/treap
 environment:
   sdk: ^3.4.0
 
+dependencies:
+  meta: ^1.15.0
+
 dev_dependencies:
   benchmark_harness: ^2.2.2
-  lints: ^4.0.0
+  dartdoc_test: ^0.1.0
+  lints: ^5.0.0
   test: ^1.17.5
