@@ -31,7 +31,11 @@ class TreapList<T> extends ListBase<T> {
   }
 
   @override
-  void add(T element) => _treap = _treap.insert(length, element);
+  void add(T element) => _treap = _treap.add(element);
+
+  @override
+  void addAll(Iterable<T> iterable) =>
+      _treap = _treap.append(ImplicitTreap.of(iterable));
 
   @override
   void insert(int index, T element) {

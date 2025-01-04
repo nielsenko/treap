@@ -43,6 +43,7 @@ void main() {
       expect(t2.size, 2);
       expect(t2[0], 2);
       expect(t2[1], 3);
+      expect(() => t1.take(-1), throwsRangeError);
     });
 
     test('skip', () {
@@ -52,6 +53,12 @@ void main() {
       expect(t2.size, 2);
       expect(t2[0], 3);
       expect(t2[1], 1);
+    });
+
+    test('values', () {
+      final t = ImplicitTreap<int>.empty();
+      final t1 = t.insert(0, 1).insert(0, 2).insert(1, 3);
+      expect(t1.values, [2, 3, 1]);
     });
   });
 }

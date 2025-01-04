@@ -1,22 +1,22 @@
 import 'node.dart';
 
-(NodeT?, bool, NodeT?) split<T, NodeT extends Node<T, NodeT>>(
+(NodeT?, NodeT?) split<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   int index,
 ) {
-  if (self == null) return const (null, false, null);
+  if (self == null) return const (null, null);
   final (l, _, r) = self.expose;
-  final order = index.compareTo(self.left.size);
+  final order = index.compareTo(l.size);
   if (order < 0) {
-    final (ll, b, lr) = split<T, NodeT>(l, index);
-    return (ll, b, join(lr, self, r));
+    final (ll, lr) = split<T, NodeT>(l, index);
+    return (ll, join(lr, self, r));
   }
   if (order > 0) {
-    final adjusted = index - self.left.size - 1;
-    final (rl, b, rr) = split<T, NodeT>(r, adjusted);
-    return (join(l, self, rl), b, rr);
+    final adjusted = index - l.size - 1;
+    final (rl, rr) = split<T, NodeT>(r, adjusted);
+    return (join(l, self, rl), rr);
   }
-  return (l, true, r);
+  return (l, r);
 }
 
 /// Throws a [RangeError] if [rank] is out of bounds
@@ -50,6 +50,14 @@ NodeT insert<T, NodeT extends Node<T, NodeT>>(
   return join(l, self, insert<T, NodeT>(r, newNode, adjusted));
 }
 
+NodeT? append<T, NodeT extends Node<T, NodeT>>(
+  NodeT? self,
+  NodeT? other,
+) {
+  if (self == null) return other;
+  return join2(self, other);
+}
+
 NodeT? erase<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   int index,
@@ -69,9 +77,7 @@ NodeT? take<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   int n,
 ) {
-  if (n == 0) return null; // empty;
-  if (n >= self.size) return self;
-  final (low, _, _) = split<T, NodeT>(self, n);
+  final (low, _) = split<T, NodeT>(self, n);
   return low;
 }
 
@@ -79,8 +85,6 @@ NodeT? skip<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   int n,
 ) {
-  if (n == 0) return self;
-  if (n >= self.size) return null; // empty
-  final (_, b, high) = split<T, NodeT>(self, n - 1);
+  final (_, high) = split<T, NodeT>(self, n - 1);
   return high;
 }

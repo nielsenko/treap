@@ -132,6 +132,7 @@ void main() {
 
       test('take', () {
         final list = listFactory();
+        expect(() => list.take(-1), throwsRangeError);
         list.addAll([0, 1, 2]);
         expect(list.take(0), <int>[]);
         expect(list.take(1), [0]);
@@ -141,6 +142,7 @@ void main() {
 
       test('skip', () {
         final list = listFactory();
+        expect(() => list.skip(-1), throwsRangeError);
         list.addAll([0, 1, 2]);
         expect(list, [0, 1, 2]);
         expect(list.skip(0), [0, 1, 2]);

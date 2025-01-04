@@ -19,6 +19,14 @@ final class ImplicitTreap<T> {
   const ImplicitTreap._(this._root);
   const ImplicitTreap.empty() : this._(null);
 
+  factory ImplicitTreap.of(Iterable<T> items) {
+    var treap = ImplicitTreap<T>.empty();
+    for (final item in items) {
+      treap = treap.add(item);
+    }
+    return treap;
+  }
+
   int get size => _root.size;
 
   /// Creates a copy of this treap.
@@ -30,16 +38,26 @@ final class ImplicitTreap<T> {
   ImplicitTreap<T> insert(int index, T item) =>
       _new(n.insert<T, _Node<T>>(_root, _createNode(item), index));
 
+  ImplicitTreap<T> add(T item) =>
+      _new(n.append<T, _Node<T>>(_root, _createNode(item)));
+
+  ImplicitTreap<T> append(ImplicitTreap<T> other) =>
+      _new(n.append<T, _Node<T>>(_root, other._root));
+
   ImplicitTreap<T> remove(int index) =>
       _new(n.erase<T, _Node<T>>(_root, index));
 
   T operator [](int index) => n.select<T, _Node<T>>(_root, index).item;
 
   ImplicitTreap<T> take(int count) {
+    RangeError.checkNotNegative(count);
     return _new(n.take<T, _Node<T>>(_root, count));
   }
 
   ImplicitTreap<T> skip(int count) {
+    RangeError.checkNotNegative(count);
     return _new(n.skip<T, _Node<T>>(_root, count));
   }
+
+  Iterable<T> get values => _root.inOrder().map((n) => n.item);
 }
