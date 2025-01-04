@@ -27,6 +27,7 @@ extension NodeEx<T, NodeT extends Node<T, NodeT>> on NodeT {
   @pragma('vm:prefer-inline')
   (NodeT?, T, NodeT?) get expose => (left, item, right);
 
+  /* NOTE: rotations are not used currently
   //     t            R
   //    / \          / \
   //   l   r   =>   T   y
@@ -54,6 +55,7 @@ extension NodeEx<T, NodeT extends Node<T, NodeT>> on NodeT {
     final y = l.right;
     return l.withRight(withLeft(y));
   }
+  */
 
   /// The minimum item in the treap.
   NodeT get first => left == null ? this : left!.first;
@@ -61,16 +63,14 @@ extension NodeEx<T, NodeT extends Node<T, NodeT>> on NodeT {
   /// The maximum item in the treap.
   NodeT get last => right == null ? this : right!.last;
 
-  void checkInvariant() {
-    assert(() {
-      final l = left;
-      final r = right;
-      // check heap order
-      assert(priority >= 0); // ensure non-negative
-      assert(l == null || l.priority <= priority);
-      assert(r == null || r.priority <= priority);
-      return true;
-    }());
+  bool checkInvariant() {
+    final l = left;
+    final r = right;
+    // check heap order
+    assert(priority >= 0); // ensure non-negative
+    assert(l == null || l.priority <= priority);
+    assert(r == null || r.priority <= priority);
+    return true;
   }
 }
 

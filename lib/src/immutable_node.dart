@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 
 import 'node.dart';
 
+// NOTE: implements faster than extends. Shared functionality is in extension methods.
 @immutable
 final class ImmutableNode<T> implements Node<T, ImmutableNode<T>> {
   @override
@@ -16,7 +17,9 @@ final class ImmutableNode<T> implements Node<T, ImmutableNode<T>> {
   final ImmutableNode<T>? left, right;
 
   ImmutableNode(this.item, this.priority, {this.left, this.right})
-      : size = 1 + left.size + right.size;
+      : size = 1 + left.size + right.size {
+    assert(checkInvariant());
+  }
 
   /// Create a copy with the left child set to [left].
   @pragma('vm:prefer-inline')

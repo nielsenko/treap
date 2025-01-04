@@ -24,7 +24,9 @@ final class DeeplyImmutableNode<T extends DeeplyImmutable>
   final DeeplyImmutableNode<T>? left, right;
 
   DeeplyImmutableNode(this.item, this.priority, this.left, this.right)
-      : size = 1 + left.size + right.size;
+      : size = 1 + left.size + right.size {
+    assert(checkInvariant());
+  }
 
   @override
   DeeplyImmutableNode<T> copy() => this;

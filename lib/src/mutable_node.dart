@@ -14,6 +14,7 @@ final class MutableNode<T> implements Node<T, MutableNode<T>> {
 
   MutableNode(this.item, this.priority, {this.left, this.right}) {
     _updateSize();
+    assert(checkInvariant());
   }
 
   void _updateSize() {

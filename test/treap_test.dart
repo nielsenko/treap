@@ -12,8 +12,8 @@ import 'util.dart';
 void main() {
   group('Treap', () {
     group('creation', () {
-      test('add, erase, build', () {
-        final x = Treap<num>() + 1;
+      test('add, addOrUpdate, addAll, of(build), and remove', () {
+        final x = Treap<int>() + 1;
         final y = x.add(1);
         final z = x.addOrUpdate(1);
         expect(x, y);
@@ -25,12 +25,19 @@ void main() {
           ..add(3);
         expect(x.values, [1]);
 
-        final big = Treap<num>.of([9, 8, 7, 6, 1, 2, 3, 4, 5]..mix());
-        expect(big.values, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        final many = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        final big = Treap.of(many..mix()); // shuffle,
+        final big2 = Treap<int>().addAll(many..mix()); // shuffle, then ..
+        expect(big.values, orderedEquals(big2.values));
+        expect(
+          big.values,
+          orderedEquals(many..sort(big.compare)), // .. sort again
+        );
 
         expect(big.remove(1).remove(0).remove(5).values, [2, 3, 4, 6, 7, 8, 9]);
 
-        final w = Treap<num>.of([1]);
+        final w = Treap.of([1]);
+        expect(x.values, w.values);
         expect(x, isNot(w)); // equal items does not imply equality
       });
 
@@ -41,8 +48,16 @@ void main() {
       });
 
       test('duplicates', () {
-        final t = Treap<num>.of([1, 1, 1, 1, 1]);
+        final t = Treap.of([1, 1, 1, 1, 1]);
         expect(t.values, [1]);
+      });
+
+      test('copy', () {
+        final t = Treap.of([1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
+        final copy = t.copy();
+        expect(t.values, copy.values);
+        expect(t, copy); // for an immutable treap, this is true too
+        expect(identical(t, copy), isTrue);
       });
     });
 
@@ -50,7 +65,7 @@ void main() {
       test('find, has, rank, select', () {
         const max = 1000;
         final items = [for (int i = 0; i < max; ++i) i]..mix();
-        final t = Treap<num>.of(items);
+        final t = Treap.of(items);
         for (final i in items) {
           expect(t.find(i), isNotNull);
           expect(t.rank(t.find(i)!), i);
@@ -69,7 +84,7 @@ void main() {
       });
 
       test('rank, select', () {
-        final top = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
+        final top = Treap.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
         expect(top.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         expect(
             top.values.map((i) => top.rank(i)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -87,7 +102,7 @@ void main() {
 
     group('iterator', () {
       test('values', () {
-        final t = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
+        final t = Treap.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
         expect(t.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       });
 
@@ -114,12 +129,12 @@ void main() {
         expect(() => empty.last, throwsStateError);
         expect(empty.lastOrDefault, null);
 
-        final single = Treap<num>.of([1]);
+        final single = Treap.of([1]);
         expect(single.first, single.last);
         expect(single.first, single.firstOrDefault);
         expect(single.first, single.lastOrDefault);
 
-        final many = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
+        final many = Treap.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
         expect(many.first, many.values.first);
         expect(many.first, 0);
         expect(many.last, many.values.last);
@@ -127,7 +142,7 @@ void main() {
       });
 
       test('prev, next', () {
-        final t = Treap<num>.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
+        final t = Treap.of([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
         final l = t.values.toList();
         for (var i = 1; i < l.length - 1; ++i) {
           expect(t.prev(t.select(i)), l[i - 1]);
@@ -163,8 +178,8 @@ void main() {
         final x = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
         final y = {for (int i = 0; i < max; ++i) rnd.nextInt(max)};
 
-        final tx = Treap<num>.of(x);
-        final ty = Treap<num>.of(y);
+        final tx = Treap.of(x);
+        final ty = Treap.of(y);
 
         expect((tx | ty).values, x.union(y));
         expect((tx & ty).values, x.intersection(y));
