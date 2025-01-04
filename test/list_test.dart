@@ -1,5 +1,6 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
+
 import 'package:treap/treap.dart';
 import 'package:test/test.dart';
 
@@ -146,6 +147,15 @@ void main() {
         expect(list.skip(1), [1, 2]);
         expect(list.skip(2), [2]);
         expect(list.skip(6), <int>[]);
+      });
+
+      test('toList', () {
+        final list = listFactory();
+        list.addAll([0, 1, 2]);
+        final copy = list.toList();
+        list.add(3);
+        expect(copy, [0, 1, 2]);
+        expect(list, [0, 1, 2, 3]);
       });
     });
   }
