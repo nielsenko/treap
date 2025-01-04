@@ -1,5 +1,7 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
+import 'package:meta/meta.dart';
+
 import 'split.dart';
 
 sealed class Node<T> {
@@ -13,17 +15,24 @@ sealed class Node<T> {
     checkInvariant();
   }
 
+  @pragma('vm:prefer-inline')
   Node<T> withLeft(Node<T>? left);
 
+  @pragma('vm:prefer-inline')
   Node<T> withRight(Node<T>? right);
 
-  /// x
+  @pragma('vm:prefer-inline')
   Node<T> withoutChildren();
 
+  @pragma('vm:prefer-inline')
+  Node<T> copy();
+
   /// The minimum item in the treap.
+  @pragma('vm:prefer-inline')
   T get min => left == null ? item : left!.min;
 
   /// The maximum item in the treap.
+  @pragma('vm:prefer-inline')
   T get max => right == null ? item : right!.max;
 
   void checkInvariant() {
@@ -38,7 +47,8 @@ sealed class Node<T> {
   }
 }
 
-class PersistentNode<T> extends Node<T> {
+@immutable
+final class PersistentNode<T> extends Node<T> {
   @override
   final PersistentNode<T>? left, right;
   @override
@@ -47,23 +57,30 @@ class PersistentNode<T> extends Node<T> {
   PersistentNode(super.item, super.priority, {this.left, this.right})
       : _size = 1 + left.size + right.size;
 
+  @pragma('vm:prefer-inline')
+  @override
+  PersistentNode<T> copy() => this; // immutable
+
   /// Create a copy with the left child set to [left].
+  @pragma('vm:prefer-inline')
   @override
   PersistentNode<T> withLeft(covariant PersistentNode<T>? left) =>
       PersistentNode(item, priority, left: left, right: right);
 
   /// Create a copy with the right child set to [right].
+  @pragma('vm:prefer-inline')
   @override
   PersistentNode<T> withRight(covariant PersistentNode<T>? right) =>
       PersistentNode(item, priority, left: left, right: right);
 
   /// Create a copy of this node without children.
-  /// @super
+  @pragma('vm:prefer-inline')
   @override
   PersistentNode<T> withoutChildren() => PersistentNode(item, priority);
 }
 
 extension NodeEx<T> on Node<T>? {
+  @pragma('vm:prefer-inline')
   int get size => this?._size ?? 0;
 
   Split<T> split(T pivot, Comparator<T> compare) {

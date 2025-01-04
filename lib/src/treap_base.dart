@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
+import 'package:meta/meta.dart';
+
 import 'node.dart';
 
 final _rnd = Random(42);
@@ -27,6 +29,7 @@ final _rnd = Random(42);
 /// Both [add] and [erase] has a space complexity of `O(log(N))`, due to path copying,
 /// but erased nodes can later be reclaimed by the garbage collector, if the old
 /// treaps containing them becomes eligible for reaping.
+@immutable
 class Treap<T> {
   final Node<T>? _root;
 
@@ -41,8 +44,6 @@ class Treap<T> {
   const Treap([Comparator<T>? compare])
       : this._(null, compare ?? Comparable.compare as Comparator<T>);
 
-  Treap<T> _new(Node<T>? root) => root == _root ? this : Treap._(root, compare);
-
   /// Build a treap containing the [items].
   ///
   /// Constructs the treap by folding [add] over the [items], adding each one
@@ -52,6 +53,11 @@ class Treap<T> {
   /// items are sorted. However, this works in all cases.
   factory Treap.of(Iterable<T> items, [Comparator<T>? comparator]) =>
       Treap(comparator).addAll(items);
+
+  /// Create a copy of this treap.
+  Treap<T> copy() => _new(_root?.copy());
+
+  Treap<T> _new(Node<T>? root) => root == _root ? this : Treap._(root, compare);
 
   /// Adds an [item].
   ///
