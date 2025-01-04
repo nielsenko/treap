@@ -31,7 +31,7 @@ jobs:
       - id: cache-check
         uses: actions/cache/restore@v4
         with:
-          path: ${{ env.PURO_ROOT }}
+          path: ${{ env.PURO_ROOT }} # set in setup-env step
           lookup-only: true
           key: setup-runner-${{ runner.os }}-${{ runner.arch }}-
           restore-keys: setup-runner-${{ runner.os }}-${{ runner.arch }}-
@@ -91,7 +91,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        channel: [stable, beta, master]
+        channel: [stable, beta] # drop master for now, due to https://github.com/pingbird/puro/issues/102
 
     steps:
       - uses: actions/checkout@v4
