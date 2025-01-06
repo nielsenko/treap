@@ -1,6 +1,9 @@
-## next
+## 0.3.0
 
 - Fix a bug where `TreapSet<T>.add` would update an existing item.
+- Add a persistent implicit treap (`ImplicitTreap`). 
+- Add `TreapList<T>` with logarithmic `insert` and `remove`, build on top of `ImplicitTreap`.
+- Add comparative benchmark for `list` and `TreapList`.
 
 ## 0.2.0
 
