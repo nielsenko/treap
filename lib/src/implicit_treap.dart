@@ -36,27 +36,25 @@ final class ImplicitTreap<T> {
       identical(root, _root) ? this : ImplicitTreap._(root);
 
   ImplicitTreap<T> insert(int index, T item) =>
-      _new(n.insert<T, _Node<T>>(_root, _createNode(item), index));
+      _new(n.insert(_root, _createNode(item), index));
 
-  ImplicitTreap<T> add(T item) =>
-      _new(n.append<T, _Node<T>>(_root, _createNode(item)));
+  ImplicitTreap<T> add(T item) => _new(n.append(_root, _createNode(item)));
 
   ImplicitTreap<T> append(ImplicitTreap<T> other) =>
-      _new(n.append<T, _Node<T>>(_root, other._root));
+      _new(n.append(_root, other._root));
 
-  ImplicitTreap<T> remove(int index) =>
-      _new(n.erase<T, _Node<T>>(_root, index));
+  ImplicitTreap<T> remove(int index) => _new(n.erase(_root, index));
 
-  T operator [](int index) => n.select<T, _Node<T>>(_root, index).item;
+  T operator [](int index) => n.select(_root, index).item;
 
   ImplicitTreap<T> take(int count) {
     RangeError.checkNotNegative(count);
-    return _new(n.take<T, _Node<T>>(_root, count));
+    return _new(n.take(_root, count));
   }
 
   ImplicitTreap<T> skip(int count) {
     RangeError.checkNotNegative(count);
-    return _new(n.skip<T, _Node<T>>(_root, count));
+    return _new(n.skip(_root, count));
   }
 
   Iterable<T> get values => _root.inOrder().map((n) => n.item);

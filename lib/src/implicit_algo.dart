@@ -1,6 +1,8 @@
+// Copyright 2024, kasper@byolimit.com
+// SPDX-License-Identifier: BSD-3-Clause
 import 'node.dart';
 
-(NodeT?, NodeT?) split<T, NodeT extends Node<T, NodeT>>(
+(NodeT?, NodeT?) split<NodeT extends Node<dynamic, NodeT>>(
   NodeT? self,
   int index,
 ) {
@@ -8,19 +10,19 @@ import 'node.dart';
   final (l, _, r) = self.expose;
   final order = index.compareTo(l.size);
   if (order < 0) {
-    final (ll, lr) = split<T, NodeT>(l, index);
+    final (ll, lr) = split(l, index);
     return (ll, join(lr, self, r));
   }
   if (order > 0) {
     final adjusted = index - l.size - 1;
-    final (rl, rr) = split<T, NodeT>(r, adjusted);
+    final (rl, rr) = split(r, adjusted);
     return (join(l, self, rl), rr);
   }
   return (l, r);
 }
 
 /// Throws a [RangeError] if [rank] is out of bounds
-NodeT select<T, NodeT extends Node<T, NodeT>>(
+NodeT select<NodeT extends Node<dynamic, NodeT>>(
   NodeT? self,
   int rank,
 ) {
@@ -30,27 +32,27 @@ NodeT select<T, NodeT extends Node<T, NodeT>>(
   }
   final (l, _, r) = self.expose;
   final ls = l.size;
-  if (rank < ls) return select<T, NodeT>(l, rank);
+  if (rank < ls) return select(l, rank);
   if (rank == ls) return self;
-  return select<T, NodeT>(r, rank - ls - 1);
+  return select(r, rank - ls - 1);
 }
 
-NodeT insert<T, NodeT extends Node<T, NodeT>>(
+NodeT insert<NodeT extends Node<dynamic, NodeT>>(
   NodeT? self,
   NodeT newNode,
   int index,
 ) {
   if (self == null) return newNode;
-  final (l, T i, r) = self.expose;
+  final (l, _, r) = self.expose;
   final order = index.compareTo(self.left.size);
-  if (order < 0) return join(insert<T, NodeT>(l, newNode, index), self, r);
+  if (order < 0) return join(insert(l, newNode, index), self, r);
   if (order == 0) return join(l, newNode, self.withLeft(null));
   // order > 0
   final adjusted = index - self.left.size - 1;
-  return join(l, self, insert<T, NodeT>(r, newNode, adjusted));
+  return join(l, self, insert(r, newNode, adjusted));
 }
 
-NodeT? append<T, NodeT extends Node<T, NodeT>>(
+NodeT? append<NodeT extends Node<dynamic, NodeT>>(
   NodeT? self,
   NodeT? other,
 ) {
@@ -58,33 +60,33 @@ NodeT? append<T, NodeT extends Node<T, NodeT>>(
   return join2(self, other);
 }
 
-NodeT? erase<T, NodeT extends Node<T, NodeT>>(
+NodeT? erase<NodeT extends Node<dynamic, NodeT>>(
   NodeT? self,
   int index,
 ) {
   if (self == null) return null;
   final (l, _, r) = self.expose;
   final order = index.compareTo(self.left.size);
-  if (order < 0) return join(erase<T, NodeT>(l, index), self, r);
+  if (order < 0) return join(erase(l, index), self, r);
   if (order > 0) {
     final adjusted = index - self.left.size - 1;
-    return join(l, self, erase<T, NodeT>(r, adjusted));
+    return join(l, self, erase(r, adjusted));
   }
   return join2(l, r);
 }
 
-NodeT? take<T, NodeT extends Node<T, NodeT>>(
+NodeT? take<NodeT extends Node<dynamic, NodeT>>(
   NodeT? self,
   int n,
 ) {
-  final (low, _) = split<T, NodeT>(self, n);
+  final (low, _) = split(self, n);
   return low;
 }
 
-NodeT? skip<T, NodeT extends Node<T, NodeT>>(
+NodeT? skip<NodeT extends Node<dynamic, NodeT>>(
   NodeT? self,
   int n,
 ) {
-  final (_, high) = split<T, NodeT>(self, n - 1);
+  final (_, high) = split(self, n - 1);
   return high;
 }
