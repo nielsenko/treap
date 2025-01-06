@@ -10,49 +10,66 @@ typedef _Node<T> = ImmutableNode<T>;
 _Node<T> _createNode<T>(T item) => _Node<T>(item, defaultPriority(item));
 
 @immutable
-final class ImplicitTreap<T> {
-  final _Node<T>? _root;
+final class ImplicitTreapBase<T, NodeT extends Node<T, NodeT>> {
+  final NodeT? _root;
 
-  const ImplicitTreap._(this._root);
-  const ImplicitTreap.empty() : this._(null);
+  const ImplicitTreapBase._(this._root);
 
-  factory ImplicitTreap.of(Iterable<T> items) {
-    var treap = ImplicitTreap<T>.empty();
+  /// Creates an empty treap.
+  const ImplicitTreapBase.empty() : this._(null);
+
+  /// Creates a treap from [items].
+  factory ImplicitTreapBase.of(Iterable<T> items) {
+    var treap = ImplicitTreapBase<T, NodeT>.empty();
     for (final item in items) {
       treap = treap.add(item);
     }
     return treap;
   }
 
+  /// The number of items in the treap.
   int get size => _root.size;
 
   /// Creates a copy of this treap.
-  ImplicitTreap<T> copy() => _new(_root?.copy());
+  ImplicitTreapBase<T, NodeT> copy() => _new(_root?.copy());
 
-  ImplicitTreap<T> _new(_Node<T>? root) =>
-      identical(root, _root) ? this : ImplicitTreap._(root);
+  ImplicitTreapBase<T, NodeT> _new(NodeT? root) =>
+      identical(root, _root) ? this : ImplicitTreapBase._(root);
 
-  ImplicitTreap<T> insert(int index, T item) =>
+  /// Inserts [item] at [index].
+  ///
+  /// Throws a [RangeError] if [index] is out of bounds.
+  ImplicitTreapBase<T, NodeT> insert(int index, T item) =>
       _new(n.insert(_root, _createNode(item), index));
 
-  ImplicitTreap<T> add(T item) => _new(n.append(_root, _createNode(item)));
+  /// Adds [item] to the end of the treap.
+  ImplicitTreapBase<T, NodeT> add(T item) =>
+      _new(n.append(_root, _createNode(item)));
 
-  ImplicitTreap<T> append(ImplicitTreap<T> other) =>
+  /// Appends [other] to the end of this treap.
+  ImplicitTreapBase<T, NodeT> append(ImplicitTreapBase<T, NodeT> other) =>
       _new(n.append(_root, other._root));
 
-  ImplicitTreap<T> remove(int index) => _new(n.erase(_root, index));
+  /// Removes the item at [index].
+  ImplicitTreapBase<T, NodeT> remove(int index) => _new(n.erase(_root, index));
 
+  /// Returns the item at [index].
   T operator [](int index) => n.select(_root, index).item;
 
-  ImplicitTreap<T> take(int count) {
+  /// Returns a new treap with the first [count] items.
+  ImplicitTreapBase<T, NodeT> take(int count) {
     RangeError.checkNotNegative(count);
     return _new(n.take(_root, count));
   }
 
-  ImplicitTreap<T> skip(int count) {
+  /// Skips the first [count] items and returns a new treap with the remaining items.
+  ImplicitTreapBase<T, NodeT> skip(int count) {
     RangeError.checkNotNegative(count);
     return _new(n.skip(_root, count));
   }
 
+  /// Iterate over the items in the treap.
   Iterable<T> get values => _root.inOrder().map((n) => n.item);
 }
+
+typedef ImplicitTreap<T> = ImplicitTreapBase<T, Node<T, ImmutableNode<T>>>;
