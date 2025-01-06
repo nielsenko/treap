@@ -10,7 +10,7 @@ topics:
   - collections
   - functional
 
-version: 0.2.0 # still some planned interface changes
+version: 0.3.0 # still some planned interface changes
 homepage: https://github.com/nielsenko/treap
 
 environment:
