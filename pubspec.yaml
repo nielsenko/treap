@@ -1,9 +1,9 @@
 name: treap
 description: >-
- A persistent treap for Dart.
- 
- A heap balanced randomized binary tree with efficient value semantics.
- 
+  A persistent treap for Dart.
+
+  A heap balanced randomized binary tree with efficient value semantics.
+
 topics:
   - treap
   - data-structures
