@@ -92,7 +92,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         channel: [stable, beta] # drop master for now, due to https://github.com/pingbird/puro/issues/102
-
+        tools:
+          - {platform: chrome, compiler: dart2js}
+          - {platform: chrome, compiler: dart2wasm}
+          - {platform: vm, compiler: kernel}
     steps:
       - uses: actions/checkout@v4
       - name: Setup runner
@@ -101,4 +104,9 @@ jobs:
           flutter-version: ${{ matrix.channel }}
 
       - name: Run tests
-        run: dart test --reporter=expanded --concurrency=1
+        run: >-
+          dart test 
+          --platform=${{ matrix.tools.platform }} 
+          --compiler=${{ matrix.tools.compiler }} 
+          --reporter=expanded 
+          --concurrency=1
