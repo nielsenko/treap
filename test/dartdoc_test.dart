@@ -1,4 +1,8 @@
+@TestOn('vm')
+library;
+
 import 'package:dartdoc_test/dartdoc_test.dart';
+import 'package:test/test.dart';
 
 /// Test code samples in documentation comments in this package.
 ///
