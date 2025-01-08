@@ -8,7 +8,7 @@ import 'node.dart' as node;
 
 final _rnd = Random();
 typedef _Node<T> = ImmutableNode<T>;
-_Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(~0));
+_Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 31));
 
 /// A [fully persistent](https://en.wikipedia.org/wiki/Persistent_data_structure)
 /// (immutable) implementation of a [Treap](https://en.wikipedia.org/wiki/Treap).
