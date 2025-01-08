@@ -4,9 +4,17 @@ import 'package:meta/meta.dart';
 
 import 'node.dart';
 
+// NOTE: This is in reality useless to outside users as it has to be sealed when
+// marked as deeply immutable, but it's here to show a user can easily create
+// treaps supporting deeply immutable data structures for efficient inter-isolate
+// communication.
+//
+// Hopefully, the Dart team will add support for an interface class for deeply
+// immutable classes in the future, so we can remove this class, and simplify
+// IntNode, and friends.
 @immutable
 @pragma('vm:deeply-immutable')
-class DeeplyImmutable {
+sealed class DeeplyImmutable {
   const DeeplyImmutable();
 }
 
@@ -46,7 +54,7 @@ final class DeeplyImmutableNode<T extends DeeplyImmutable>
 
 @immutable
 @pragma('vm:deeply-immutable')
-class BoolNode implements Node<bool, BoolNode> {
+final class BoolNode implements Node<bool, BoolNode> {
   @override
   final bool item;
   @override
