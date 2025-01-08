@@ -10,7 +10,7 @@ import 'implicit_algo.dart' as n;
 
 final _rnd = Random();
 typedef _Node<T> = ImmutableNode<T>;
-_Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 32));
+_Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 31));
 
 @immutable
 final class ImplicitTreap<T> {

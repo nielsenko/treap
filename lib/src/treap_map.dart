@@ -10,7 +10,7 @@ final _rnd = Random();
 typedef _Item<K, V> = ({K key, V? value});
 typedef _Node<K, V> = ImmutableNode<_Item<K, V>>;
 _Node<K, V> _createNode<K, V>(_Item<K, V> item) =>
-    _Node(item, _rnd.nextInt(1 << 32));
+    _Node(item, _rnd.nextInt(1 << 31));
 
 class TreapMap<K, V> extends MapBase<K, V> {
   _Node<K, V>? _root;

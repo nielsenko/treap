@@ -9,7 +9,7 @@ import 'node.dart' as node;
 
 typedef _Node<T> = ImmutableNode<T>;
 final _rnd = Random();
-_Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 32));
+_Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 31));
 
 class TreapSet<T> extends SetBase<T> {
   _Node<T>? _root;
