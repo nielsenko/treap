@@ -11,7 +11,9 @@ class TodoList {
 
   TodoList addOrUpdate(Task t) {
     return TodoList._(
-        all.add(t), t.completed ? uncompleted.remove(t) : uncompleted.add(t));
+      all.addOrUpdate(t),
+      t.completed ? uncompleted.remove(t) : uncompleted.add(t),
+    );
   }
 
   TodoList remove(Task t) {
