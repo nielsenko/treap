@@ -1,16 +1,14 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:collection';
-import 'dart:math';
 
 import 'immutable_node.dart';
 import 'node.dart';
 
-final _rnd = Random();
 typedef _Item<K, V> = ({K key, V? value});
 typedef _Node<K, V> = ImmutableNode<_Item<K, V>>;
 _Node<K, V> _createNode<K, V>(_Item<K, V> item) =>
-    _Node(item, _rnd.nextInt(1 << 31));
+    _Node(item, defaultPriority(item));
 
 class TreapMap<K, V> extends MapBase<K, V> {
   _Node<K, V>? _root;

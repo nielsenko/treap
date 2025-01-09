@@ -1,16 +1,13 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
-import 'dart:math';
-
 import 'package:meta/meta.dart';
 import 'package:treap/src/node.dart';
 
 import 'immutable_node.dart';
 import 'implicit_algo.dart' as n;
 
-final _rnd = Random();
 typedef _Node<T> = ImmutableNode<T>;
-_Node<T> _createNode<T>(T item) => _Node<T>(item, _rnd.nextInt(1 << 31));
+_Node<T> _createNode<T>(T item) => _Node<T>(item, defaultPriority(item));
 
 @immutable
 final class ImplicitTreap<T> {

@@ -1,5 +1,6 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
+import 'dart:math';
 
 final class NodeContext<T, NodeT extends Node<T, NodeT>> {
   final Comparator<T> compare;
@@ -20,6 +21,14 @@ abstract class Node<T, NodeT extends Node<T, NodeT>> {
   NodeT withItem(T item);
   NodeT copy();
 }
+
+final _rnd = Random();
+int randomPriority(Object? item) =>
+    _rnd.nextInt(0xffff + 1); // dart2js friendly version of 1 << 32 (2^32)
+
+int hashAsPriority(Object? i) => Object.hash(i, 1202);
+
+var defaultPriority = hashAsPriority;
 
 Never _noElement() => throw StateError('No element');
 
