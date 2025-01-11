@@ -59,6 +59,21 @@ void main() {
         expect(t, copy); // for an immutable treap, this is true too
         expect(identical(t, copy), isTrue);
       });
+
+      for (final priority in [
+        randomPriority, // old default
+        hashAsPriority, // current default
+        (Object? i) => i as int, // "works" for ints, but easy to unbalance
+        (Object? i) => 0, // "works", but badly unbalanced
+      ]) {
+        test('defaultPriority = $priority', () {
+          defaultPriority = priority;
+          const max = 1000;
+          final items = [for (int i = 0; i < max; ++i) i]..mix();
+          final t = Treap.of(items);
+          expect(t.values, items..sort());
+        });
+      }
     });
 
     group('retrieval', () {
