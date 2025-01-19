@@ -5,33 +5,38 @@ import 'dart:collection';
 import 'immutable_node.dart';
 import 'node.dart';
 
-typedef _Item<K, V> = ({K key, V? value});
-typedef _Node<K, V> = ImmutableNode<_Item<K, V>>;
-_Node<K, V> _createNode<K, V>(_Item<K, V> item) =>
-    _Node(item, defaultPriority(item));
+typedef KeyValue<K, V> = ({K key, V? value});
 
-class TreapMap<K, V> extends MapBase<K, V> {
-  _Node<K, V>? _root;
-  NodeContext<_Item<K, V>, _Node<K, V>> _ctx;
+class TreapMapBase<K, V, NodeT extends Node<KeyValue<K, V>, NodeT>>
+    extends MapBase<K, V> {
+  NodeT? _root;
+  final NodeT Function(KeyValue<K, V>) _createNode;
+  final Comparator<KeyValue<K, V>> _compare;
 
-  TreapMap._(this._root, this._ctx);
+  TreapMapBase._(this._root, this._createNode, this._compare);
 
-  TreapMap(Comparator<K> compare)
+  TreapMapBase(NodeT Function(KeyValue<K, V>) createNode, Comparator<K> compare)
       : this._(
           null,
-          NodeContext(
-            (a, b) => compare(a.key, b.key),
-            _createNode,
-          ),
+          createNode,
+          (a, b) => compare(a.key, b.key),
         );
 
   @override
-  V? operator [](covariant K key) =>
-      find(_root, (key: key, value: null), _ctx)?.item.value;
+  V? operator [](covariant K key) => find<KeyValue<K, V>, NodeT>(
+        _root,
+        (key: key, value: null),
+        _compare,
+      )?.item.value;
 
   @override
-  void operator []=(K key, V value) =>
-      _root = upsert(_root, (key: key, value: value), true, _ctx);
+  void operator []=(K key, V value) => _root = upsert<KeyValue<K, V>, NodeT>(
+        _root,
+        (key: key, value: value),
+        true,
+        _compare,
+        _createNode,
+      );
 
   @override
   void clear() => _root = null;
@@ -45,7 +50,10 @@ class TreapMap<K, V> extends MapBase<K, V> {
   @override
   V? remove(covariant K key) {
     final toDie = this[key];
-    if (toDie != null) _root = erase(_root, (key: key, value: null), _ctx);
+    if (toDie != null) {
+      _root = erase<KeyValue<K, V>, NodeT>(
+          _root, (key: key, value: null), _compare);
+    }
     return toDie;
   }
 
@@ -54,7 +62,8 @@ class TreapMap<K, V> extends MapBase<K, V> {
 
   @override
   bool containsKey(covariant K key) =>
-      find(_root, (key: key, value: null), _ctx) != null;
+      find<KeyValue<K, V>, NodeT>(_root, (key: key, value: null), _compare) !=
+      null;
 
   @override
   Iterable<MapEntry<K, V>> get entries => _root.inOrder().map((n) {
@@ -72,4 +81,11 @@ class TreapMap<K, V> extends MapBase<K, V> {
 
   @override
   bool get isEmpty => _root == null;
+}
+
+extension type TreapMap<K, V>._(
+        TreapMapBase<K, V, ImmutableNode<KeyValue<K, V>>> base)
+    implements TreapMapBase<K, V, ImmutableNode<KeyValue<K, V>>> {
+  TreapMap(Comparator<K> compare)
+      : base = TreapMapBase(immutableNodeFactory, compare);
 }

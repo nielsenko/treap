@@ -44,3 +44,6 @@ final class ImmutableNode<T> implements Node<T, ImmutableNode<T>> {
   @override
   ImmutableNode<T> copy() => this; // immutable
 }
+
+ImmutableNode<T> immutableNodeFactory<T>(T item) =>
+    ImmutableNode<T>(item, defaultPriority(item));

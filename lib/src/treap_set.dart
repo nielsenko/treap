@@ -6,37 +6,37 @@ import 'immutable_node.dart';
 import 'node.dart';
 import 'node.dart' as node;
 
-typedef _Node<T> = ImmutableNode<T>;
-_Node<T> _createNode<T>(T item) => _Node<T>(item, defaultPriority(item));
+class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
+  NodeT? _root;
+  final NodeT Function(T) _createNode;
+  final Comparator<T> compare;
 
-class TreapSet<T> extends SetBase<T> {
-  _Node<T>? _root;
-  final NodeContext<T, _Node<T>> _ctx;
+  TreapSetBase._(this._root, this._createNode, this.compare);
 
-  TreapSet._(this._root, this._ctx);
-
-  TreapSet([Comparator<T>? compare])
+  TreapSetBase.empty(NodeT Function(T) createNode, [Comparator<T>? compare])
       : this._(
           null,
-          NodeContext(
-            compare ?? Comparable.compare as Comparator<T>,
-            _createNode,
-          ),
+          createNode,
+          compare ?? Comparable.compare as Comparator<T>,
         );
 
-  factory TreapSet.of(Iterable<T> items, [Comparator<T>? compare]) =>
-      TreapSet(compare)..addAll(items);
+  factory TreapSetBase.of(
+    Iterable<T> items,
+    NodeT Function(T) createNode, [
+    Comparator<T>? compare,
+  ]) =>
+      TreapSetBase.empty(createNode, compare)..addAll(items);
 
   @override
   bool add(T value) {
     final oldSize = _root.size;
-    _root = upsert(_root, value, false, _ctx);
+    _root = upsert(_root, value, false, compare, _createNode);
     return _root.size != oldSize; // grew
   }
 
   @override
-  void addAll(Iterable<T> elements) =>
-      _root = elements.fold(_root, (acc, e) => upsert(acc, e, false, _ctx));
+  void addAll(Iterable<T> elements) => _root = elements.fold(
+      _root, (acc, e) => upsert(acc, e, false, compare, _createNode));
 
   @override
   bool contains(covariant T element) => lookup(element) != null;
@@ -48,35 +48,40 @@ class TreapSet<T> extends SetBase<T> {
   int get length => _root.size;
 
   @override
-  T? lookup(covariant T element) => find(_root, element, _ctx)?.item;
+  T? lookup(covariant T element) => find(_root, element, compare)?.item;
 
   @override
   bool remove(covariant T value) {
     final oldSize = _root.size;
-    _root = erase(_root, value, _ctx);
+    _root = erase(_root, value, compare);
     return _root.size != oldSize; // shrunk
   }
 
   @override
-  TreapSet<T> toSet() => TreapSet._(_root?.copy(), _ctx);
+  TreapSetBase<T, NodeT> toSet() =>
+      TreapSetBase._(_root?.copy(), _createNode, compare);
+
+  TreapSetBase<T, NodeT> _new(NodeT? root) => identical(root, _root)
+      ? this
+      : TreapSetBase._(root, _createNode, compare);
 
   @override
-  TreapSet<T> intersection(covariant TreapSet<T> other) =>
-      TreapSet._(node.intersection(_root, other._root, _ctx), _ctx);
+  TreapSetBase<T, NodeT> union(covariant TreapSetBase<T, NodeT> other) =>
+      _new(node.union(_root, other._root, compare));
 
   @override
-  TreapSet<T> difference(covariant TreapSet<T> other) =>
-      TreapSet._(node.difference(_root, other._root, _ctx), _ctx);
+  TreapSetBase<T, NodeT> intersection(covariant TreapSetBase<T, NodeT> other) =>
+      _new(node.intersection(_root, other._root, compare));
 
   @override
-  TreapSet<T> union(covariant TreapSet<T> other) =>
-      TreapSet._(node.union(_root, other._root, _ctx), _ctx);
+  TreapSetBase<T, NodeT> difference(covariant TreapSetBase<T, NodeT> other) =>
+      _new(node.difference(_root, other._root, compare));
 
   @override
   void clear() => _root = null;
 
   @override
-  T elementAt(int index) => select(_root, index, _ctx).item;
+  T elementAt(int index) => select(_root, index).item;
 
   @override
   T get first => _root.first.item;
@@ -88,7 +93,7 @@ class TreapSet<T> extends SetBase<T> {
   T get last => _root.last.item;
 
   @override
-  TreapSet<T> skip(int n) => TreapSet._(node.skip(_root, n, _ctx), _ctx);
+  TreapSetBase<T, NodeT> skip(int n) => _new(node.skip(_root, n, compare));
 
   int _countWhile(bool Function(T value) test) {
     int count = 0;
@@ -100,11 +105,41 @@ class TreapSet<T> extends SetBase<T> {
   }
 
   @override
-  TreapSet<T> skipWhile(bool Function(T value) test) => skip(_countWhile(test));
+  TreapSetBase<T, NodeT> skipWhile(bool Function(T value) test) =>
+      skip(_countWhile(test));
 
   @override
-  TreapSet<T> take(int n) => TreapSet._(node.take(_root, n, _ctx), _ctx);
+  TreapSetBase<T, NodeT> take(int n) => _new(node.take(_root, n, compare));
 
   @override
-  TreapSet<T> takeWhile(bool Function(T value) test) => take(_countWhile(test));
+  TreapSetBase<T, NodeT> takeWhile(bool Function(T value) test) =>
+      take(_countWhile(test));
+}
+
+extension type TreapSet<T>._(TreapSetBase<T, ImmutableNode<T>> base)
+    implements TreapSetBase<T, ImmutableNode<T>> {
+  TreapSet.of(Iterable<T> items, [Comparator<T>? compare])
+      : base = TreapSetBase.of(
+          items,
+          immutableNodeFactory,
+          compare,
+        );
+
+  TreapSet([Comparator<T>? compare])
+      : base = TreapSetBase.empty(immutableNodeFactory, compare);
+
+  TreapSet<T> union(TreapSet<T> other) => TreapSet<T>._(base.union(other.base));
+  TreapSet<T> intersection(TreapSet<T> other) =>
+      TreapSet<T>._(base.intersection(other.base));
+  TreapSet<T> difference(TreapSet<T> other) =>
+      TreapSet<T>._(base.difference(other.base));
+
+  TreapSet<T> take(int count) => TreapSet<T>._(base.take(count));
+  TreapSet<T> takeWhile(bool Function(T value) test) =>
+      TreapSet<T>._(base.takeWhile(test));
+  TreapSet<T> skip(int count) => TreapSet<T>._(base.skip(count));
+  TreapSet<T> skipWhile(bool Function(T value) test) =>
+      TreapSet<T>._(base.skipWhile(test));
+
+  TreapSet<T> toSet() => TreapSet<T>._(base.toSet());
 }

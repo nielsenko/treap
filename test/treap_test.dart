@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:treap/src/deeply_immutable_node.dart';
 import 'package:treap/src/immutable_node.dart';
-import 'package:treap/src/mutable_node.dart';
 import 'package:treap/src/node.dart';
 import 'package:treap/treap.dart';
 import 'package:test/test.dart';
@@ -14,11 +13,12 @@ import 'util.dart';
 void main() {
   for (final treapFactory in {
     ([Iterable<int>? items]) => Treap<int>.of(items ?? []),
+    ([Iterable<int>? items]) => TreapBase<int, ImmutableNode<int>>.of(
+        items ?? [], immutableNodeFactory),
     ([Iterable<int>? items]) =>
-        TreapBase<int, ImmutableNode<int>>.of(items ?? []),
-    ([Iterable<int>? items]) => TreapBase<int, IntNode>.of(items ?? []),
-    ([Iterable<int>? items]) =>
-        TreapBase<int, MutableNode<int>>.of(items ?? []),
+        TreapBase<int, IntNode>.of(items ?? [], intNodeFactory),
+//    ([Iterable<int>? items]) =>
+//        TreapBase<int, MutableNode<int>>.of(items ?? [], mutableNodeFactory),
   }) {
     final treapType = treapFactory().runtimeType;
 
@@ -202,22 +202,18 @@ void main() {
     });
 
     group('Node', () {
-      final rnd = Random(42);
-      ImmutableNode<int> node(int value) =>
-          ImmutableNode<int>(value, rnd.nextInt(1 << 32));
+      ImmutableNode<int> createNode(int value) =>
+          ImmutableNode<int>(value, randomPriority(value));
 
-      final ctx = NodeContext(
-        Comparable.compare as Comparator<int>,
-        node,
-      );
+      final ctx = Comparable.compare as Comparator<int>;
 
       test('add, find, erase, inOrder', () {
-        final first = node(1);
-        final again = upsert(first, 1, true, ctx);
-        final second = upsert(first, 2, true, ctx);
-        final third = upsert(second, 3, true, ctx);
-        final another = upsert(second, 3, true, ctx);
-        final forth = upsert(third, 0, true, ctx);
+        final first = createNode(1);
+        final again = upsert(first, 1, true, ctx, createNode);
+        final second = upsert(first, 2, true, ctx, createNode);
+        final third = upsert(second, 3, true, ctx, createNode);
+        final another = upsert(second, 3, true, ctx, createNode);
+        final forth = upsert(third, 0, true, ctx, createNode);
 
         expect(first.inOrder().map((n) => n.item), [1]);
         expect(again.inOrder().map((n) => n.item), [1]);
@@ -245,9 +241,8 @@ void main() {
       });
 
       test('rank, select', () {
-        final top = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-            .reversed
-            .fold(node(0), (acc, i) => upsert(acc, i, true, ctx));
+        final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold(
+            createNode(0), (acc, i) => upsert(acc, i, true, ctx, createNode));
         expect(
             top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         expect(top.inOrder().map((n) => rank(top, n.item, ctx)),
@@ -256,7 +251,7 @@ void main() {
         expect(rank(top, 100, ctx), 10); // 100 goes after all
         expect(
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                .fold(true, (acc, i) => acc && select(top, i, ctx).item == i),
+                .fold(true, (acc, i) => acc && select(top, i).item == i),
             isTrue);
       });
 
@@ -264,13 +259,10 @@ void main() {
         final items = [5, 6, 3, 9, 1, 8, 2, 4, 7]; // evil order
         var count = 0;
         node(int i) => ImmutableNode(i, count++);
-        final ctx = NodeContext(
-          Comparable.compare as Comparator<int>,
-          node,
-        );
+        final ctx = Comparable.compare as Comparator<int>;
         final top = items.fold(
           ImmutableNode(0, 0), // will have same priority (5, 0)
-          (acc, i) => upsert(acc, i, true, ctx),
+          (acc, i) => upsert(acc, i, true, ctx, node),
         );
         expect(
           top.inOrder().map((n) => n.item),

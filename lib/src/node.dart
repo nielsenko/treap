@@ -2,13 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
-final class NodeContext<T, NodeT extends Node<T, NodeT>> {
-  final Comparator<T> compare;
-  final NodeT Function(T) create;
-
-  const NodeContext(this.compare, this.create);
-}
-
 abstract class Node<T, NodeT extends Node<T, NodeT>> {
   T get item;
   int get priority;
@@ -151,17 +144,17 @@ NodeT join<NodeT extends Node<dynamic, NodeT>>(
 (NodeT?, bool, NodeT?) split<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T pivot,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
 ) {
   if (self == null) return const (null, false, null);
   final (l, T i, r) = self.expose;
-  final order = ctx.compare(pivot, i);
+  final order = compare(pivot, i);
   if (order < 0) {
-    final (ll, b, lr) = split(l, pivot, ctx);
+    final (ll, b, lr) = split(l, pivot, compare);
     return (ll, b, join(lr, self, r));
   }
   if (order > 0) {
-    final (rl, b, rr) = split(r, pivot, ctx);
+    final (rl, b, rr) = split(r, pivot, compare);
     return (join(l, self, rl), b, rr);
   }
   return (l, true, r);
@@ -189,59 +182,71 @@ NodeT upsert<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T item,
   bool allowUpdate,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
+  NodeT Function(T) createNode,
 ) {
-  if (self == null) return ctx.create(item);
+  if (self == null) return createNode(item);
   final (l, T i, r) = self.expose;
-  final order = ctx.compare(item, i);
-  if (order < 0) return join(upsert(l, item, allowUpdate, ctx), self, r);
-  if (order > 0) return join(l, self, upsert(r, item, allowUpdate, ctx));
+  final order = compare(item, i);
+  if (order < 0) {
+    return join(
+      upsert(l, item, allowUpdate, compare, createNode),
+      self,
+      r,
+    );
+  }
+  if (order > 0) {
+    return join(
+      l,
+      self,
+      upsert(r, item, allowUpdate, compare, createNode),
+    );
+  }
   return allowUpdate ? self.withItem(item) : self;
 }
 
 NodeT? erase<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T item,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
 ) {
   if (self == null) return null;
   final (l, T i, r) = self.expose;
-  final order = ctx.compare(item, i);
-  if (order < 0) return join(erase(l, item, ctx), self, r);
-  if (order > 0) return join(l, self, erase(r, item, ctx));
+  final order = compare(item, i);
+  if (order < 0) return join(erase(l, item, compare), self, r);
+  if (order > 0) return join(l, self, erase(r, item, compare));
   return join2(l, r);
 }
 
 NodeT? find<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T item,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
 ) {
   if (self == null) return null; // {}
-  final order = ctx.compare(item, self.item);
-  if (order < 0) return find(self.left, item, ctx);
-  if (order > 0) return find(self.right, item, ctx);
+  final order = compare(item, self.item);
+  if (order < 0) return find(self.left, item, compare);
+  if (order > 0) return find(self.right, item, compare);
   return self; // order == 0
 }
 
 int rank<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T item,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
 ) {
   if (self == null) return 0; // {}
   final (l, T i, r) = self.expose;
-  final order = ctx.compare(item, i);
-  if (order < 0) return rank(l, item, ctx);
-  if (order > 0) return 1 + l.size + rank(r, item, ctx);
+  final order = compare(item, i);
+  if (order < 0) return rank(l, item, compare);
+  if (order > 0) return 1 + l.size + rank(r, item, compare);
   return l.size; // order == 0
 }
 
 /// Throws a [RangeError] if [rank] is out of bounds
-NodeT select<T, NodeT extends Node<T, NodeT>>(
+NodeT select<NodeT extends Node<dynamic, NodeT>>(
   NodeT? self,
   int rank,
-  NodeContext<T, NodeT> ctx,
 ) {
   final size = self.size;
   if (self == null || rank < 0 || rank >= size) {
@@ -249,62 +254,62 @@ NodeT select<T, NodeT extends Node<T, NodeT>>(
   }
   final (l, _, r) = self.expose;
   final ls = l.size;
-  if (rank < ls) return select(l, rank, ctx);
+  if (rank < ls) return select(l, rank);
   if (rank == ls) return self;
-  return select(r, rank - ls - 1, ctx);
+  return select(r, rank - ls - 1);
 }
 
 NodeT? union<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   NodeT? other,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
 ) {
   if (self == null) return other; // {} | B == B
   if (other == null) return self; // A | {} == A
-  final (l, _, r) = split(other, self.item, ctx);
+  final (l, _, r) = split(other, self.item, compare);
   return join(
-    union(self.left, l, ctx),
+    union(self.left, l, compare),
     self,
-    union(self.right, r, ctx),
+    union(self.right, r, compare),
   );
 }
 
 NodeT? intersection<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   NodeT? other,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
 ) {
   if (self == null || other == null) return null; // {} & B == A & {} == {}
-  final (l, b, r) = split(other, self.item, ctx);
-  final low = intersection(self.left, l, ctx);
-  final high = intersection(self.right, r, ctx);
+  final (l, b, r) = split(other, self.item, compare);
+  final low = intersection(self.left, l, compare);
+  final high = intersection(self.right, r, compare);
   return b ? join(low, self, high) : join2(low, high);
 }
 
 NodeT? difference<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   NodeT? other,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
 ) {
   if (self == null) return null; // {} - B == {}
   if (other == null) return self; // A - {} == A
-  final (l, b, r) = split(other, self.item, ctx);
-  final low = difference(self.left, l, ctx);
-  final high = difference(self.right, r, ctx);
+  final (l, b, r) = split(other, self.item, compare);
+  final low = difference(self.left, l, compare);
+  final high = difference(self.right, r, compare);
   return b ? join2(low, high) : join(low, self, high);
 }
 
 NodeT? take<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   int n,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
 ) {
   if (n == 0) return null; // empty;
   if (n >= self.size) return self;
   final (low, _, _) = split(
     self,
-    select(self, n, ctx).item,
-    ctx,
+    select(self, n).item,
+    compare,
   );
   return low;
 }
@@ -312,14 +317,14 @@ NodeT? take<T, NodeT extends Node<T, NodeT>>(
 NodeT? skip<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   int n,
-  NodeContext<T, NodeT> ctx,
+  Comparator<T> compare,
 ) {
   if (n == 0) return self;
   if (n >= self.size) return null; // empty
   final (_, _, high) = split(
     self,
-    select(self, n - 1, ctx).item,
-    ctx,
+    select(self, n - 1).item,
+    compare,
   );
   return high;
 }

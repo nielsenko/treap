@@ -6,21 +6,23 @@ import 'package:treap/src/node.dart';
 import 'immutable_node.dart';
 import 'implicit_algo.dart' as n;
 
-typedef _Node<T> = ImmutableNode<T>;
-_Node<T> _createNode<T>(T item) => _Node<T>(item, defaultPriority(item));
-
 @immutable
 final class ImplicitTreapBase<T, NodeT extends Node<T, NodeT>> {
   final NodeT? _root;
+  final NodeT Function(T) _createNode;
 
-  const ImplicitTreapBase._(this._root);
+  const ImplicitTreapBase._(this._root, this._createNode);
 
   /// Creates an empty treap.
-  const ImplicitTreapBase.empty() : this._(null);
+  const ImplicitTreapBase.empty(NodeT Function(T) createNode)
+      : this._(null, createNode);
 
   /// Creates a treap from [items].
-  factory ImplicitTreapBase.of(Iterable<T> items) {
-    var treap = ImplicitTreapBase<T, NodeT>.empty();
+  factory ImplicitTreapBase.of(
+    Iterable<T> items,
+    NodeT Function(T) createNode,
+  ) {
+    var treap = ImplicitTreapBase<T, NodeT>.empty(createNode);
     for (final item in items) {
       treap = treap.add(item);
     }
@@ -34,7 +36,7 @@ final class ImplicitTreapBase<T, NodeT extends Node<T, NodeT>> {
   ImplicitTreapBase<T, NodeT> copy() => _new(_root?.copy());
 
   ImplicitTreapBase<T, NodeT> _new(NodeT? root) =>
-      identical(root, _root) ? this : ImplicitTreapBase._(root);
+      identical(root, _root) ? this : ImplicitTreapBase._(root, _createNode);
 
   /// Inserts [item] at [index].
   ///
@@ -72,4 +74,29 @@ final class ImplicitTreapBase<T, NodeT extends Node<T, NodeT>> {
   Iterable<T> get values => _root.inOrder().map((n) => n.item);
 }
 
-typedef ImplicitTreap<T> = ImplicitTreapBase<T, Node<T, ImmutableNode<T>>>;
+extension type ImplicitTreap<T>._(ImplicitTreapBase<T, ImmutableNode<T>> base)
+    implements ImplicitTreapBase<T, ImmutableNode<T>> {
+  ImplicitTreap.of(Iterable<T> items)
+      : base = ImplicitTreapBase.of(
+          items,
+          immutableNodeFactory,
+        );
+
+  ImplicitTreap.empty() : base = ImplicitTreapBase.empty(immutableNodeFactory);
+
+  ImplicitTreap<T> take(int count) => ImplicitTreap._(base.take(count));
+
+  ImplicitTreap<T> skip(int count) => ImplicitTreap._(base.skip(count));
+
+  ImplicitTreap<T> copy() => ImplicitTreap._(base.copy());
+
+  ImplicitTreap<T> remove(int index) => ImplicitTreap._(base.remove(index));
+
+  ImplicitTreap<T> insert(int index, T item) =>
+      ImplicitTreap._(base.insert(index, item));
+
+  ImplicitTreap<T> add(T item) => ImplicitTreap._(base.add(item));
+
+  ImplicitTreap<T> append(ImplicitTreap<T> other) =>
+      ImplicitTreap._(base.append(other.base));
+}

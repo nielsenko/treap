@@ -52,3 +52,6 @@ final class MutableNode<T> implements Node<T, MutableNode<T>> {
   MutableNode<T> copy() =>
       MutableNode(item, priority, left: left?.copy(), right: right?.copy());
 }
+
+MutableNode<T> mutableNodeFactory<T>(T item) =>
+    MutableNode<T>(item, defaultPriority(item));

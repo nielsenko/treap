@@ -122,7 +122,7 @@ final class IntNode implements Node<int, IntNode> {
   @override
   final IntNode? left, right;
 
-  IntNode(this.item, this.priority, this.left, this.right)
+  IntNode(this.item, this.priority, [this.left, this.right])
       : size = 1 + left.size + right.size;
 
   @override
@@ -137,6 +137,8 @@ final class IntNode implements Node<int, IntNode> {
   @override
   IntNode withRight(IntNode? right) => IntNode(item, priority, left, right);
 }
+
+IntNode intNodeFactory(int item) => IntNode(item, defaultPriority(item));
 
 @immutable
 @pragma('vm:deeply-immutable')
