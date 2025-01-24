@@ -21,6 +21,11 @@ final class ImmutableNode<T> implements Node<T, ImmutableNode<T>> {
     assert(checkInvariant());
   }
 
+  /// Create a copy of this node.
+  @pragma('vm:prefer-inline')
+  @override
+  ImmutableNode<T> copy() => this; // immutable
+
   /// Create a copy with the left child set to [left].
   @pragma('vm:prefer-inline')
   @override
@@ -39,10 +44,11 @@ final class ImmutableNode<T> implements Node<T, ImmutableNode<T>> {
   ImmutableNode<T> withItem(T item) =>
       ImmutableNode(item, priority, left: left, right: right);
 
-  /// Create a copy of this node.
-  @pragma('vm:prefer-inline')
   @override
-  ImmutableNode<T> copy() => this; // immutable
+  @pragma('vm:prefer-inline')
+  ImmutableNode<T> withChildren(
+          ImmutableNode<T>? left, ImmutableNode<T>? right) =>
+      ImmutableNode(item, priority, left: left, right: right);
 }
 
 ImmutableNode<T> immutableNodeFactory<T>(T item) =>

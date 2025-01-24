@@ -1,11 +1,7 @@
-import 'dart:math';
-
 import 'package:treap/src/treap_list.dart';
+import 'package:treap/src/util.dart';
 
 import 'list_benchmark.dart';
-
-final _base = log(2);
-double log2(num x) => log(x) / _base;
 
 void runFor<L extends List<T>, T>(
   ListFactory<L, T> listFactory,

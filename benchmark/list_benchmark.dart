@@ -1,22 +1,6 @@
 import 'dart:collection';
 
-import 'package:benchmark_harness/benchmark_harness.dart' as harness;
-
-abstract class BenchmarkBase extends harness.BenchmarkBase {
-  BenchmarkBase(super.name);
-
-  @override
-  void report() {
-    try {
-      super.report();
-    } catch (e) {
-      print('$name: Failed! $e');
-    }
-  }
-
-  @override
-  void exercise() => run(); // run once per exercise
-}
+import 'benchmark_base.dart';
 
 typedef ListFactory<L extends List<T>, T> = L Function(Iterable<T> items);
 
@@ -55,7 +39,11 @@ class InsertBenchmark<L extends List<T>, T> extends UnaryOpBenchmark<L, T> {
 
   @override
   void run() {
-    list.insert(noOfItems ~/ 2, list.last);
+    // Insert last element in the middle. We remove the last element before
+    // inserting again to ensure the list doesn't grow. Using the last element
+    // should be an advantage for a regular list.
+    final e = list.removeLast();
+    list.insert(noOfItems ~/ 2, e); // insert in the middle
   }
 }
 

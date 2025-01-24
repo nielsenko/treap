@@ -31,6 +31,12 @@ class TreapList<T> extends ListBase<T> {
   }
 
   @override
+  T get first => _treap.first;
+
+  @override
+  T get last => _treap.last;
+
+  @override
   void add(T element) => _treap = _treap.add(element);
 
   @override

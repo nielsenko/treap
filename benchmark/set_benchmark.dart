@@ -26,7 +26,7 @@ abstract class SetBenchmark<S extends Set<T>, T> extends BenchmarkBase {
   final int noOfItems; // count up front
   SetBenchmark(this.setFactory, this.items, String name)
       : noOfItems = items.length,
-        super('$S '.padRight(20) + name.padRight(20));
+        super(name.padRight(40));
 }
 
 class CtorBenchmark<S extends Set<T>, T> extends SetBenchmark<S, T> {
@@ -34,19 +34,7 @@ class CtorBenchmark<S extends Set<T>, T> extends SetBenchmark<S, T> {
 
   @override
   void run() {
-    setFactory(items); // SetT.of(items) (see main.dart)
-  }
-}
-
-class CtorSortedBenchmark<S extends Set<T>, T> extends SetBenchmark<S, T> {
-  final List<T> sorted;
-  CtorSortedBenchmark(super.setFactory, super.items,
-      [super.name = 'of (but sorted)'])
-      : sorted = items.toList()..sort(); // copy and sort
-
-  @override
-  void run() {
-    setFactory(sorted);
+    final s = setFactory(items); // SetT.of(items) (see main.dart)
   }
 }
 

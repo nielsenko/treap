@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
-abstract class Node<T, NodeT extends Node<T, NodeT>> {
-  T get item;
+abstract interface class NodeBase<NodeT extends NodeBase<NodeT>> {
   int get priority;
   int get size;
   NodeT? get left;
@@ -11,8 +10,14 @@ abstract class Node<T, NodeT extends Node<T, NodeT>> {
 
   NodeT withLeft(NodeT? left);
   NodeT withRight(NodeT? right);
-  NodeT withItem(T item);
+  NodeT withChildren(NodeT? left, NodeT? right);
   NodeT copy();
+}
+
+abstract interface class Node<T, NodeT extends Node<T, NodeT>>
+    extends NodeBase<NodeT> {
+  T get item;
+  NodeT withItem(T item);
 }
 
 final _rnd = Random();
@@ -23,11 +28,16 @@ int hashAsPriority(Object? i) => Object.hash(i, 1202);
 
 var defaultPriority = hashAsPriority;
 
-Never _noElement() => throw StateError('No element');
+Never noElement() => throw StateError('No element');
 
 extension NodeEx<T, NodeT extends Node<T, NodeT>> on NodeT {
   @pragma('vm:prefer-inline')
   (NodeT?, T, NodeT?) get expose => (left, item, right);
+}
+
+extension NodeBaseEx<NodeT extends NodeBase<NodeT>> on NodeT {
+  @pragma('vm:prefer-inline')
+  (NodeT?, NodeT?) get expose => (left, right);
 
   /* NOTE: rotations are not used currently
   //     t            R
@@ -65,23 +75,40 @@ extension NodeEx<T, NodeT extends Node<T, NodeT>> on NodeT {
   /// The maximum item in the treap.
   NodeT get last => right == null ? this : right!.last;
 
+  /// Is this a leaf node?
+  bool get isLeaf => left == null && right == null;
+
   bool checkInvariant() {
-    final l = left;
-    final r = right;
     // check heap order
-    assert(priority >= 0); // ensure non-negative
-    assert(l == null || l.priority <= priority);
-    assert(r == null || r.priority <= priority);
+    assert(priority >= 0, 'priority: $priority');
+    assert(
+      left.priority <= priority,
+      'left: ${left.priority}, priority: $priority',
+    );
+    assert(
+      right.priority <= priority,
+      'right: ${right.priority}, priority: $priority',
+    );
     return true;
   }
 }
 
-extension NullableNodeEx<T, NodeT extends Node<T, NodeT>> on NodeT? {
+extension NullableNodeEx<NodeT extends NodeBase<NodeT>> on NodeT? {
   @pragma('vm:prefer-inline')
-  int get size => this?.size ?? 0;
+  int get size {
+    // same as `this?.size ?? 0` but avoids boxing a temporary nullable int
+    final self = this;
+    if (self == null) return 0;
+    return self.size;
+  }
 
   @pragma('vm:prefer-inline')
-  int get priority => this?.priority ?? -1;
+  int get priority {
+    // same as `this?.priority ?? -1` but avoids boxing a temporary nullable int
+    final self = this;
+    if (self == null) return -1;
+    return self.priority;
+  }
 
   @pragma('vm:prefer-inline')
   NodeT? get firstOrNull => this?.first;
@@ -90,10 +117,10 @@ extension NullableNodeEx<T, NodeT extends Node<T, NodeT>> on NodeT? {
   NodeT? get lastOrNull => this?.last;
 
   @pragma('vm:prefer-inline')
-  NodeT get first => this?.first ?? _noElement();
+  NodeT get first => firstOrNull ?? noElement();
 
   @pragma('vm:prefer-inline')
-  NodeT get last => this?.last ?? _noElement();
+  NodeT get last => lastOrNull ?? noElement();
 
   /// Iterates over the nodes in the treap in order.
   Iterable<NodeT> inOrder() sync* {
@@ -123,7 +150,7 @@ extension NullableNodeEx<T, NodeT extends Node<T, NodeT>> on NodeT? {
   }
 }
 
-NodeT join<NodeT extends Node<dynamic, NodeT>>(
+NodeT join<NodeT extends NodeBase<NodeT>>(
   NodeT? low,
   NodeT middle,
   NodeT? high,
@@ -131,9 +158,11 @@ NodeT join<NodeT extends Node<dynamic, NodeT>>(
   final p = middle.priority;
   if (p > low.priority && //
       p > high.priority) {
-    final (l, _, r) = middle.expose;
-    if (l == low && r == high) return middle; // reuse
-    return middle.withLeft(low).withRight(high);
+    if (identical(middle.left, low) && //
+        identical(middle.right, high)) {
+      return middle; // reuse
+    }
+    return middle.withChildren(low, high);
   }
   if (low.priority > high.priority) {
     return low!.withRight(join(low.right, middle, high));
@@ -160,16 +189,16 @@ NodeT join<NodeT extends Node<dynamic, NodeT>>(
   return (l, true, r);
 }
 
-(NodeT?, NodeT) splitLast<NodeT extends Node<dynamic, NodeT>>(
+(NodeT?, NodeT) splitLast<NodeT extends NodeBase<NodeT>>(
   NodeT self,
 ) {
-  final (l, _, r) = self.expose;
-  if (r == null) return (l, self);
-  final (rl, last) = splitLast(r);
-  return (join(l, self, rl), last);
+  final (left, right) = self.expose;
+  if (right == null) return (left, self);
+  final (rightLeft, last) = splitLast(right);
+  return (join(left, self, rightLeft), last);
 }
 
-NodeT? join2<NodeT extends Node<dynamic, NodeT>>(
+NodeT? join2<NodeT extends NodeBase<NodeT>>(
   NodeT? left,
   NodeT? right,
 ) {
@@ -243,8 +272,7 @@ int rank<T, NodeT extends Node<T, NodeT>>(
   return l.size; // order == 0
 }
 
-/// Throws a [RangeError] if [rank] is out of bounds
-NodeT select<NodeT extends Node<dynamic, NodeT>>(
+NodeT select<NodeT extends NodeBase<NodeT>>(
   NodeT? self,
   int rank,
 ) {
@@ -252,11 +280,19 @@ NodeT select<NodeT extends Node<dynamic, NodeT>>(
   if (self == null || rank < 0 || rank >= size) {
     throw RangeError.range(rank, 0, size - 1, 'rank');
   }
-  final (l, _, r) = self.expose;
+  return _select(self, rank);
+}
+
+NodeT _select<NodeT extends NodeBase<NodeT>>(
+  NodeT? self,
+  int rank,
+) {
+  if (self == null) return noElement();
+  final (l, r) = self.expose;
   final ls = l.size;
   if (rank < ls) return select(l, rank);
   if (rank == ls) return self;
-  return select(r, rank - ls - 1);
+  return _select(r, rank - ls - 1);
 }
 
 NodeT? union<T, NodeT extends Node<T, NodeT>>(
@@ -306,11 +342,7 @@ NodeT? take<T, NodeT extends Node<T, NodeT>>(
 ) {
   if (n == 0) return null; // empty;
   if (n >= self.size) return self;
-  final (low, _, _) = split(
-    self,
-    select(self, n).item,
-    compare,
-  );
+  final (low, _, _) = split(self, select(self, n).item, compare);
   return low;
 }
 
@@ -321,10 +353,6 @@ NodeT? skip<T, NodeT extends Node<T, NodeT>>(
 ) {
   if (n == 0) return self;
   if (n >= self.size) return null; // empty
-  final (_, _, high) = split(
-    self,
-    select(self, n - 1).item,
-    compare,
-  );
+  final (_, _, high) = split(self, select(self, n - 1).item, compare);
   return high;
 }

@@ -1,5 +1,6 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
+
 import 'package:meta/meta.dart';
 
 import 'node.dart';
@@ -50,34 +51,11 @@ final class DeeplyImmutableNode<T extends DeeplyImmutable>
   @override
   DeeplyImmutableNode<T> withRight(DeeplyImmutableNode<T>? right) =>
       DeeplyImmutableNode(item, priority, left, right);
-}
-
-@immutable
-@pragma('vm:deeply-immutable')
-final class BoolNode implements Node<bool, BoolNode> {
-  @override
-  final bool item;
-  @override
-  final int priority;
-  @override
-  final int size;
-  @override
-  final BoolNode? left, right;
-
-  BoolNode(this.item, this.priority, this.left, this.right)
-      : size = 1 + left.size + right.size;
 
   @override
-  BoolNode copy() => this;
-
-  @override
-  BoolNode withItem(bool item) => BoolNode(item, priority, left, right);
-
-  @override
-  BoolNode withLeft(BoolNode? left) => BoolNode(item, priority, left, right);
-
-  @override
-  BoolNode withRight(BoolNode? right) => BoolNode(item, priority, left, right);
+  DeeplyImmutableNode<T> withChildren(
+          DeeplyImmutableNode<T>? left, DeeplyImmutableNode<T>? right) =>
+      DeeplyImmutableNode(item, priority, left, right);
 }
 
 @immutable
@@ -108,6 +86,10 @@ final class DoubleNode implements Node<double, DoubleNode> {
   @override
   DoubleNode withRight(DoubleNode? right) =>
       DoubleNode(item, priority, left, right);
+
+  @override
+  DoubleNode withChildren(DoubleNode? left, DoubleNode? right) =>
+      DoubleNode(item, priority, left, right);
 }
 
 @immutable
@@ -126,16 +108,25 @@ final class IntNode implements Node<int, IntNode> {
       : size = 1 + left.size + right.size;
 
   @override
+  @pragma('vm:prefer-inline')
   IntNode copy() => this;
 
   @override
+  @pragma('vm:prefer-inline')
   IntNode withItem(int item) => IntNode(item, priority, left, right);
 
   @override
+  @pragma('vm:prefer-inline')
   IntNode withLeft(IntNode? left) => IntNode(item, priority, left, right);
 
   @override
+  @pragma('vm:prefer-inline')
   IntNode withRight(IntNode? right) => IntNode(item, priority, left, right);
+
+  @override
+  @pragma('vm:prefer-inline')
+  IntNode withChildren(IntNode? left, IntNode? right) =>
+      IntNode(item, priority, left, right);
 }
 
 IntNode intNodeFactory(int item) => IntNode(item, defaultPriority(item));
@@ -156,16 +147,25 @@ final class StringNode implements Node<String, StringNode> {
       : size = 1 + left.size + right.size;
 
   @override
+  @pragma('vm:prefer-inline')
   StringNode copy() => this;
 
   @override
+  @pragma('vm:prefer-inline')
   StringNode withItem(String item) => StringNode(item, priority, left, right);
 
   @override
+  @pragma('vm:prefer-inline')
   StringNode withLeft(StringNode? left) =>
       StringNode(item, priority, left, right);
 
   @override
+  @pragma('vm:prefer-inline')
   StringNode withRight(StringNode? right) =>
+      StringNode(item, priority, left, right);
+
+  @override
+  @pragma('vm:prefer-inline')
+  StringNode withChildren(StringNode? left, StringNode? right) =>
       StringNode(item, priority, left, right);
 }

@@ -14,12 +14,17 @@ final class MutableNode<T> implements Node<T, MutableNode<T>> {
 
   MutableNode(this.item, this.priority, {this.left, this.right}) {
     _updateSize();
-    assert(checkInvariant());
   }
 
   void _updateSize() {
     size = 1 + left.size + right.size;
+    assert(checkInvariant());
   }
+
+  /// Create a copy of this node.
+  @override
+  MutableNode<T> copy() =>
+      MutableNode(item, priority, left: left?.copy(), right: right?.copy());
 
   /// Update the left child to [left].
   @pragma('vm:prefer-inline')
@@ -47,10 +52,13 @@ final class MutableNode<T> implements Node<T, MutableNode<T>> {
     return this;
   }
 
-  /// Create a copy of this node.
   @override
-  MutableNode<T> copy() =>
-      MutableNode(item, priority, left: left?.copy(), right: right?.copy());
+  MutableNode<T> withChildren(MutableNode<T>? left, MutableNode<T>? right) {
+    this.left = left;
+    this.right = right;
+    _updateSize();
+    return this;
+  }
 }
 
 MutableNode<T> mutableNodeFactory<T>(T item) =>

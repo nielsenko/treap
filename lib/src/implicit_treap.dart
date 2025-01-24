@@ -1,10 +1,10 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
 import 'package:meta/meta.dart';
-import 'package:treap/src/node.dart';
 
 import 'immutable_node.dart';
 import 'implicit_algo.dart' as n;
+import 'node.dart';
 
 @immutable
 final class ImplicitTreapBase<T, NodeT extends Node<T, NodeT>> {
@@ -56,7 +56,7 @@ final class ImplicitTreapBase<T, NodeT extends Node<T, NodeT>> {
   ImplicitTreapBase<T, NodeT> remove(int index) => _new(n.erase(_root, index));
 
   /// Returns the item at [index].
-  T operator [](int index) => n.select(_root, index).item;
+  T operator [](int index) => select(_root, index).item;
 
   /// Returns a new treap with the first [count] items.
   ImplicitTreapBase<T, NodeT> take(int count) {
@@ -99,4 +99,20 @@ extension type ImplicitTreap<T>._(ImplicitTreapBase<T, ImmutableNode<T>> base)
 
   ImplicitTreap<T> append(ImplicitTreap<T> other) =>
       ImplicitTreap._(base.append(other.base));
+
+  /// Returns the first item in this treap, or `null` if it is empty.
+  T? get firstOrDefault => _root.firstOrNull?.item;
+
+  /// Returns the last item in this treap, or `null` if it is empty.
+  T? get lastOrDefault => _root.lastOrNull?.item;
+
+  /// Returns the first item in this treap.
+  ///
+  /// Throws a [StateError] if it is empty.
+  T get first => _root.first.item;
+
+  /// Returns the last item in this treap.
+  ///
+  /// Throws a [StateError] if it is empty.
+  T get last => _root.last.item;
 }

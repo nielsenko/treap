@@ -2,56 +2,59 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'node.dart';
 
-(NodeT?, NodeT?) split<NodeT extends Node<dynamic, NodeT>>(
+/// Splits the implicit treap `self` at the given `index`.
+///
+/// Returns a tuple `(left, right)` where `left` contains the first `index`
+/// elements, and `right` contains the remaining elements.
+(NodeT?, NodeT?) split<NodeT extends NodeBase<NodeT>>(
   NodeT? self,
   int index,
 ) {
   if (self == null) return const (null, null);
-  final (l, _, r) = self.expose;
-  final order = index.compareTo(l.size);
+  final (left, right) = self.expose;
+  final order = index.compareTo(left.size);
   if (order < 0) {
-    final (ll, lr) = split(l, index);
-    return (ll, join(lr, self, r));
+    // Index is in the left subtree
+    final (leftLeft, leftRight) = split(left, index);
+    return (leftLeft, join(leftRight, self, right));
   }
   if (order > 0) {
-    final adjusted = index - l.size - 1;
-    final (rl, rr) = split(r, adjusted);
-    return (join(l, self, rl), rr);
+    // Index is in the right subtree
+    final adjustedIndex = index - left.size - 1;
+    final (rightLeft, rightRight) = split(right, adjustedIndex);
+    return (join(left, self, rightLeft), rightRight);
   }
-  return (l, r);
+  // Index is at the current node
+  return (left, right);
 }
 
-/// Throws a [RangeError] if [rank] is out of bounds
-NodeT select<NodeT extends Node<dynamic, NodeT>>(
-  NodeT? self,
-  int rank,
-) {
-  final size = self.size;
-  if (self == null || rank < 0 || rank >= size) {
-    throw RangeError.range(rank, 0, size - 1, 'rank');
-  }
-  final (l, _, r) = self.expose;
-  final ls = l.size;
-  if (rank < ls) return select(l, rank);
-  if (rank == ls) return self;
-  return select(r, rank - ls - 1);
-}
-
-NodeT insert<NodeT extends Node<dynamic, NodeT>>(
+/// Inserts `newNode` into the implicit treap `self` at the specified `index`.
+///
+/// Returns the root of the modified treap.
+NodeT insert<NodeT extends NodeBase<NodeT>>(
   NodeT? self,
   NodeT newNode,
   int index,
 ) {
   if (self == null) return newNode;
-  final (l, _, r) = self.expose;
-  final order = index.compareTo(self.left.size);
-  if (order < 0) return join(insert(l, newNode, index), self, r);
-  if (order == 0) return join(l, newNode, self.withLeft(null));
-  // order > 0
-  final adjusted = index - self.left.size - 1;
-  return join(l, self, insert(r, newNode, adjusted));
+  final (left, right) = self.expose;
+  final order = index.compareTo(left.size);
+  if (order < 0) {
+    // Insert into left subtree
+    return join(insert(left, newNode, index), self, right);
+  }
+  if (order == 0) {
+    // Insert at the current position (between left and self)
+    return join(left, newNode, self.withLeft(null)); // self becomes right child
+  }
+  // order > 0: Insert into right subtree
+  final adjustedIndex = index - self.left.size - 1;
+  return join(left, self, insert(right, newNode, adjustedIndex));
 }
 
+/// Appends the implicit treap `other` to the end of `self`.
+///
+/// Returns the root of the combined treap.
 NodeT? append<NodeT extends Node<dynamic, NodeT>>(
   NodeT? self,
   NodeT? other,
@@ -60,22 +63,31 @@ NodeT? append<NodeT extends Node<dynamic, NodeT>>(
   return join2(self, other);
 }
 
-NodeT? erase<NodeT extends Node<dynamic, NodeT>>(
+/// Removes the element at `index` from the implicit treap `self`.
+///
+/// Returns the root of the modified treap.
+NodeT? erase<NodeT extends NodeBase<NodeT>>(
   NodeT? self,
   int index,
 ) {
   if (self == null) return null;
-  final (l, _, r) = self.expose;
-  final order = index.compareTo(self.left.size);
-  if (order < 0) return join(erase(l, index), self, r);
-  if (order > 0) {
-    final adjusted = index - self.left.size - 1;
-    return join(l, self, erase(r, adjusted));
+  final (left, right) = self.expose;
+  final order = index.compareTo(left.size);
+  if (order < 0) {
+    // Erase from left subtree
+    return join(erase(left, index), self, right);
   }
-  return join2(l, r);
+  if (order > 0) {
+    // Erase from right subtree
+    final adjustedIndex = index - self.left.size - 1;
+    return join(left, self, erase(right, adjustedIndex));
+  }
+  // Erase the current node by joining its children
+  return join2(left, right);
 }
 
-NodeT? take<NodeT extends Node<dynamic, NodeT>>(
+/// Returns a new implicit treap containing the first `n` elements of `self`.
+NodeT? take<NodeT extends NodeBase<NodeT>>(
   NodeT? self,
   int n,
 ) {
@@ -83,7 +95,8 @@ NodeT? take<NodeT extends Node<dynamic, NodeT>>(
   return low;
 }
 
-NodeT? skip<NodeT extends Node<dynamic, NodeT>>(
+/// Returns a new implicit treap containing all elements of `self` except the first `n`.
+NodeT? skip<NodeT extends NodeBase<NodeT>>(
   NodeT? self,
   int n,
 ) {

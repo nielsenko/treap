@@ -4,20 +4,23 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:treap/src/treap_set.dart';
+import 'package:treap/src/util.dart';
 
 import 'set_benchmark.dart';
 
-final _base = log(2);
-double log2(num x) => log(x) / _base;
-
 void runFor<S extends Set<T>, T>(
   SetFactory<S, T> setFactory,
-  List<T> items,
+  T Function(int i) itemGenerator,
+  int count,
 ) {
+  final items = List.generate(count, itemGenerator)..shuffle(Random(42));
+  final sorted = items.toList()..sort();
+
   print('-- $S '.padRight(80, '-'));
   CtorBenchmark(setFactory, items).report();
-  CtorSortedBenchmark(setFactory, items).report();
+  CtorBenchmark(setFactory, sorted, 'of (sorted input)').report();
   AddAllBenchmark(setFactory, items).report();
+  AddAllBenchmark(setFactory, sorted, 'addAll (sorted input)').report();
   ToSetBenchmark(setFactory, items).report();
   TakeBenchmark(setFactory, items).report();
   SkipBenchmark(setFactory, items).report();
@@ -29,16 +32,18 @@ void runFor<S extends Set<T>, T>(
 }
 
 int main(List<String> args) {
-  for (int n = 100; n <= 10000000; n *= 10) {
+  for (int n = 100; n <= 1000000; n *= 10) {
     print(''.padRight(80, '='));
     print('n: $n, log2(n): ${log2(n)}, n*log2(n): ${n * log2(n)}');
 
-    final items = List.generate(n, (i) => i)..shuffle(Random(42));
+    // all trees benefit from explicit integer compare function
+    int intCompare(int a, int b) => a - b;
 
-    runFor((items) => TreapSet.of(items), items);
-    runFor((items) => SplayTreeSet.of(items), items);
-    runFor((items) => LinkedHashSet.of(items), items);
-    runFor((items) => HashSet.of(items), items);
+    runFor((items) => SplayTreeSet.of(items, intCompare), (i) => i, n);
+    //runFor((items) => TreapSet.of(items, intCompare), (i) => i, n);
+    runFor((items) => TreapIntSet.of(items, intCompare), (i) => i, n);
+    runFor((items) => LinkedHashSet.of(items), (i) => i, n);
+    runFor((items) => HashSet.of(items), (i) => i, n);
   }
 
   return 0;
