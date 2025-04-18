@@ -61,20 +61,20 @@ import 'package:treap/treap.dart';
 void main() {
   // Create a new TreapSet
   final set = TreapSet<int>();
-  
+
   // Add elements
   final set2 = set.add(1).add(2).add(3);
-  
+
   // Operations return new sets without modifying the original
   print(set.isEmpty);  // true
   print(set2.length);  // 3
-  
+
   // Efficient set operations
   final otherSet = TreapSet<int>.of([2, 3, 4]);
   final union = set2.union(otherSet);        // [1, 2, 3, 4]
   final intersection = set2.intersection(otherSet);  // [2, 3]
   final difference = set2.difference(otherSet);      // [1]
-  
+
   // Order statistics
   print(set2.elementAt(1));  // 2 (the element at index 1)
 }
@@ -107,21 +107,21 @@ import 'package:treap/treap.dart';
 void main() {
   // Create a new TreapList
   final list = TreapList<String>();
-  
+
   // Add elements
   list.add("apple");
   list.add("banana");
   list.add("cherry");
-  
+
   // Insert elements efficiently at any position
   list.insert(1, "blueberry");  // O(log N) operation
-  
+
   // Remove elements efficiently from any position
   final removed = list.removeAt(2);  // O(log N) operation
-  
+
   // Efficient sublist operations
   final sublist = list.sublist(1, 3);  // O(log N) operation
-  
+
   // Access elements
   print(list[0]);  // "apple" - O(log N) operation, unlike O(1) in standard List
 }
@@ -129,13 +129,47 @@ void main() {
 
 ## Specialized Variants for Cross-Isolate Sharing
 
-The package includes specialized implementations for primitive types:
+The package includes specialized implementations for primitive types, marked with the deeply-immutable pragma for efficient cross-isolate communication:
 
-- `TreapIntSet` - A specialized set for integers marked with the deeply-immutable pragma
-- `TreapStringSet` - A specialized set for strings marked with the deeply-immutable pragma
-- `TreapDoubleSet` - A specialized set for floating-point numbers marked with the deeply-immutable pragma
+### Specialized Sets
+
+- `TreapIntSet` - A specialized set for integers
+- `TreapStringSet` - A specialized set for strings
+- `TreapDoubleSet` - A specialized set for floating-point numbers
+
+### Specialized Lists
+
+- `TreapIntList` - A specialized list for integers
+- `TreapStringList` - A specialized list for strings
+- `TreapDoubleList` - A specialized list for floating-point numbers
 
 These specialized variants are designed for efficient sharing between Dart isolates. By using the deeply-immutable pragma, these collections can be passed between isolates without copying, which significantly improves performance in multi-threaded environments. The deeply immutable property ensures that the data structure can be safely accessed from multiple isolates simultaneously without risking data corruption.
+
+If you have your own deeply-immutable types that you want to store in cross-isolate friendly treap node, take a look at the `DeeplyImmutableNode` class in _lib/src/deeply_immutable_node.dart_. Due to the vm limitations that the `@pragma('vm:deeply-immutable')` can only be used on final or sealed classes, you will need to copy this to your own project. You may want to thumb-up this [issue](https://github.com/dart-lang/sdk/issues/55120) so we can avoid this oddness in the future.
+
+### Example Using Specialized List Types
+
+```dart
+import 'package:treap/treap.dart';
+
+void main() {
+  // Create specialized list for integers
+  final intList = TreapIntList();
+  intList.add(1);
+  intList.add(2);
+  intList.add(3);
+
+  // Create specialized list for strings
+  final stringList = TreapStringList.of(["apple", "banana", "cherry"]);
+
+  // Create specialized list for doubles
+  final doubleList = TreapDoubleList();
+  doubleList.addAll([1.1, 2.2, 3.3]);
+
+  // These specialized lists can be efficiently sent between isolates
+  // without copying the underlying data structure
+}
+```
 
 ## Implementation Details
 
