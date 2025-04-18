@@ -2,13 +2,36 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:collection';
 
+import 'package:treap/src/deeply_immutable_node.dart';
 import 'package:treap/src/implicit_treap.dart';
+import 'immutable_node.dart';
+import 'node.dart';
+import 'treap_set.dart' show Hash;
 
-class TreapList<T> extends ListBase<T> {
-  ImplicitTreap<T> _treap;
+class TreapListBase<T, NodeT extends Node<T, NodeT>> extends ListBase<T> {
+  ImplicitTreapBase<T, NodeT> _treap;
+  final NodeT Function(T) _createNode;
 
-  TreapList._(this._treap);
-  TreapList() : _treap = ImplicitTreap.empty();
+  TreapListBase._(this._treap, this._createNode);
+
+  /// Creates an empty [TreapListBase].
+  ///
+  /// Requires a `createNode` function.
+  TreapListBase.empty(NodeT Function(T) createNode)
+
+  /// Creates an empty [TreapListBase].
+  ///
+  /// Requires a `createNode` function.
+  TreapListBase(NodeT Function(T) createNode)
+      : _treap = ImplicitTreapBase<T, NodeT>.empty(createNode),
+        _createNode = createNode;
+
+  factory TreapListBase.of(
+    Iterable<T> items,
+    NodeT Function(T) createNode,
+  ) {
+    return TreapListBase<T, NodeT>(createNode)..addAll(items);
+  }
 
   @pragma('vm:prefer-inline')
   @override
@@ -25,23 +48,18 @@ class TreapList<T> extends ListBase<T> {
 
   @override
   void operator []=(int index, T element) {
-    // TODO!
-    // Consider optimizing this to avoid the intermediate treap after remove.
     _treap = _treap.remove(index).insert(index, element);
   }
-
-  @override
-  T get first => _treap.first;
-
-  @override
-  T get last => _treap.last;
 
   @override
   void add(T element) => _treap = _treap.add(element);
 
   @override
-  void addAll(Iterable<T> iterable) =>
-      _treap = _treap.append(ImplicitTreap.of(iterable));
+  void addAll(Iterable<T> iterable) {
+    for (final item in iterable) {
+      add(item);
+    }
+  }
 
   @override
   void insert(int index, T element) {
@@ -61,27 +79,120 @@ class TreapList<T> extends ListBase<T> {
   T removeLast() => removeAt(length - 1);
 
   @override
-  TreapList<T> sublist(int start, [int? end]) => getRange(start, end ?? length);
-
-  // TODO!
-  // Currently sublist and getRange has identical semantics, but I wonder if
-  // getRange should show modifications that happens after getRange is called,
-  // but before the iterator is consumed. I guess that match better with the
-  // behavior or the regular List class.
-  @override
-  TreapList<T> getRange(int start, int end) =>
-      TreapList._(_treap.skip(start).take(end - start));
+  TreapListBase<T, NodeT> sublist(int start, [int? end]) => 
+      getRange(start, end ?? length);
 
   @override
-  TreapList<T> toList({bool growable = true}) {
-    // TODO!
+  TreapListBase<T, NodeT> getRange(int start, int end) =>
+      TreapListBase._(_treap.skip(start).take(end - start), _createNode);
+
+  @override
+  TreapListBase<T, NodeT> toList({bool growable = true}) {
     // We just ignore growable for now.
-    return TreapList._(_treap.copy());
+    return TreapListBase._(_treap.copy(), _createNode);
   }
 
   @override
-  TreapList<T> take(int count) => TreapList._(_treap.take(count));
+  TreapListBase<T, NodeT> take(int count) =>
+      TreapListBase._(_treap.take(count), _createNode);
 
   @override
-  TreapList<T> skip(int count) => TreapList._(_treap.skip(count));
+  TreapListBase<T, NodeT> skip(int count) =>
+      TreapListBase._(_treap.skip(count), _createNode);
+}
+
+extension type TreapList<T>._(TreapListBase<T, ImmutableNode<T>> base)
+    implements TreapListBase<T, ImmutableNode<T>> {
+  TreapList.of(Iterable<T> items)
+      : base = TreapListBase.of(
+          items,
+          immutableNodeFactory,
+        );
+
+  TreapList() : this.of(<T>[]);
+
+  TreapList<T> take(int count) => TreapList._(base.take(count));
+
+  TreapList<T> skip(int count) => TreapList._(base.skip(count));
+
+  TreapList<T> sublist(int start, [int? end]) =>
+      TreapList._(base.getRange(start, end ?? length));
+
+  TreapList<T> getRange(int start, int end) =>
+      TreapList._(base.getRange(start, end));
+
+  TreapList<T> toList({bool growable = true}) =>
+      TreapList._(base.toList(growable: growable));
+}
+
+extension type TreapIntList._(TreapListBase<int, IntNode> base)
+    implements TreapListBase<int, IntNode> {
+  TreapIntList.of(Iterable<int> items)
+      : base = TreapListBase.of(
+          items,
+          (i) => IntNode(i, Hash.hash(i, 1202)),
+        );
+
+  TreapIntList() : this.of(<int>[]);
+
+  TreapIntList take(int count) => TreapIntList._(base.take(count));
+
+  TreapIntList skip(int count) => TreapIntList._(base.skip(count));
+
+  TreapIntList sublist(int start, [int? end]) =>
+      TreapIntList._(base.getRange(start, end ?? length));
+
+  TreapIntList getRange(int start, int end) =>
+      TreapIntList._(base.getRange(start, end));
+
+  TreapIntList toList({bool growable = true}) =>
+      TreapIntList._(base.toList(growable: growable));
+}
+
+extension type TreapStringList._(TreapListBase<String, StringNode> base)
+    implements TreapListBase<String, StringNode> {
+  TreapStringList.of(Iterable<String> items)
+      : base = TreapListBase.of(
+          items,
+          stringNodeFactory,
+        );
+
+  TreapStringList() : this.of(<String>[]);
+
+  TreapStringList take(int count) => TreapStringList._(base.take(count));
+
+  TreapStringList skip(int count) => TreapStringList._(base.skip(count));
+
+  TreapStringList sublist(int start, [int? end]) =>
+      TreapStringList._(base.getRange(start, end ?? length));
+
+  TreapStringList getRange(int start, int end) =>
+      TreapStringList._(base.getRange(start, end));
+
+  TreapStringList toList({bool growable = true}) =>
+      TreapStringList._(base.toList(growable: growable));
+}
+
+extension type TreapDoubleList._(TreapListBase<double, DoubleNode> base)
+    implements TreapListBase<double, DoubleNode> {
+  TreapDoubleList.of(Iterable<double> items)
+      : base = TreapListBase.of(
+          items,
+          doubleNodeFactory,
+        );
+
+  TreapDoubleList() : this.of(<double>[]);
+
+  TreapDoubleList take(int count) => TreapDoubleList._(base.take(count));
+
+  TreapDoubleList skip(int count) => TreapDoubleList._(base.skip(count));
+
+  TreapDoubleList sublist(int start, [int? end]) =>
+      TreapDoubleList._(base.getRange(start, end ?? length));
+
+  TreapDoubleList getRange(int start, int end) =>
+      TreapDoubleList._(base.getRange(start, end));
+
+  TreapDoubleList toList({bool growable = true}) =>
+      TreapDoubleList._(base.toList(growable: growable));
 }
