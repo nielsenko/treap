@@ -131,6 +131,14 @@ final class IntNode implements Node<int, IntNode> {
 
 IntNode intNodeFactory(int item) => IntNode(item, defaultPriority(item));
 
+@pragma('vm:prefer-inline')
+StringNode stringNodeFactory(String item) =>
+    StringNode(item, defaultPriority(item.hashCode), null, null);
+
+@pragma('vm:prefer-inline')
+DoubleNode doubleNodeFactory(double item) =>
+    DoubleNode(item, defaultPriority(item.hashCode), null, null);
+
 @immutable
 @pragma('vm:deeply-immutable')
 final class StringNode implements Node<String, StringNode> {
