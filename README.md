@@ -53,6 +53,33 @@ dart compile exe benchmark/set_main.dart
 ./benchmark/set_main.exe
 ```
 
+### TreapSet Usage Example
+
+```dart
+import 'package:treap/treap.dart';
+
+void main() {
+  // Create a new TreapSet
+  final set = TreapSet<int>();
+  
+  // Add elements
+  final set2 = set.add(1).add(2).add(3);
+  
+  // Operations return new sets without modifying the original
+  print(set.isEmpty);  // true
+  print(set2.length);  // 3
+  
+  // Efficient set operations
+  final otherSet = TreapSet<int>.of([2, 3, 4]);
+  final union = set2.union(otherSet);        // [1, 2, 3, 4]
+  final intersection = set2.intersection(otherSet);  // [2, 3]
+  final difference = set2.difference(otherSet);      // [1]
+  
+  // Order statistics
+  print(set2.elementAt(1));  // 2 (the element at index 1)
+}
+```
+
 ## TreapList
 
 `TreapList<T>` implements `List<T>`, but again differs on the computational complexity. No operations (including indexing) are better than `O(log(N))`, however `insert` and `remove` are also `O(log(N))`, so it scales much better than the regular `List` on these operations.
@@ -71,6 +98,69 @@ or better yet, compile to exe and run the executable.
 dart compile exe benchmark/list_main.dart
 ./benchmark/list_main.exe
 ```
+
+### TreapList Usage Example
+
+```dart
+import 'package:treap/treap.dart';
+
+void main() {
+  // Create a new TreapList
+  final list = TreapList<String>();
+  
+  // Add elements
+  list.add("apple");
+  list.add("banana");
+  list.add("cherry");
+  
+  // Insert elements efficiently at any position
+  list.insert(1, "blueberry");  // O(log N) operation
+  
+  // Remove elements efficiently from any position
+  final removed = list.removeAt(2);  // O(log N) operation
+  
+  // Efficient sublist operations
+  final sublist = list.sublist(1, 3);  // O(log N) operation
+  
+  // Access elements
+  print(list[0]);  // "apple" - O(log N) operation, unlike O(1) in standard List
+}
+```
+
+## Specialized Variants for Cross-Isolate Sharing
+
+The package includes specialized implementations for specific types:
+
+- `TreapIntSet` - A specialized set for integers that is marked with the deeply-immutable pragma
+
+These specialized variants are designed for efficient sharing between Dart isolates. By using the deeply-immutable pragma, these collections can be passed between isolates without copying, which significantly improves performance in multi-threaded environments. The deeply immutable property ensures that the data structure can be safely accessed from multiple isolates simultaneously without risking data corruption.
+
+## Implementation Details
+
+Treaps combine the properties of binary search trees (BST) and heaps:
+- Each node has a key (used for BST ordering)
+- Each node has a priority value (used for heap ordering)
+- The tree maintains BST property by key and heap property by priority
+
+The random priorities ensure that the tree remains balanced with high probability, providing O(log N) performance for operations without requiring complex rebalancing algorithms like AVL or Red-Black trees.
+
+Path copying (also known as "path cloning" or "path copying persistence") is the technique used to make operations persistent:
+1. When modifying a node, create a new copy of it
+2. Also create new copies of all its ancestors
+3. Link the copies appropriately
+4. Return the new root
+
+This approach ensures that the original tree remains unchanged while using only O(log N) extra space per operation.
+
+## When to Use Treaps
+
+Treaps are particularly useful when:
+1. You need both ordered collections and efficient updates
+2. You require persistent/immutable data structures
+3. Order statistics operations (rank, select) are frequent
+4. You need efficient undo/redo capabilities
+5. Efficient operations on subsequences are required
+6. You need to share data structures between isolates (using specialized variants)
 
 ## Example
 
