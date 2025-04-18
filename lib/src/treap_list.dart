@@ -17,11 +17,6 @@ class TreapListBase<T, NodeT extends Node<T, NodeT>> extends ListBase<T> {
   /// Creates an empty [TreapListBase].
   ///
   /// Requires a `createNode` function.
-  TreapListBase.empty(NodeT Function(T) createNode)
-
-  /// Creates an empty [TreapListBase].
-  ///
-  /// Requires a `createNode` function.
   TreapListBase(NodeT Function(T) createNode)
       : _treap = ImplicitTreapBase<T, NodeT>.empty(createNode),
         _createNode = createNode;
@@ -79,7 +74,7 @@ class TreapListBase<T, NodeT extends Node<T, NodeT>> extends ListBase<T> {
   T removeLast() => removeAt(length - 1);
 
   @override
-  TreapListBase<T, NodeT> sublist(int start, [int? end]) => 
+  TreapListBase<T, NodeT> sublist(int start, [int? end]) =>
       getRange(start, end ?? length);
 
   @override

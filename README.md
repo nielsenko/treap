@@ -8,47 +8,80 @@ A package implementing a [persistent](https://en.wikipedia.org/wiki/Persistent_d
 - `select(i)` – find the `i`-th smallest element.
 - `rank(x)` – find the rank of element `x`, i.e. the number of elements smaller than `x`.
 
-both in `O(log(N))` time.
+both in _O(log(N))_ time.
 
-The package also contains an implementation the related [implicit treap](https://en.wikipedia.org/wiki/Treap#Implicit_treap) (a kind of [dynamic array](https://en.wikipedia.org/wiki/Dynamic_array)). Which has better computational complexity on:
+The package also contains an implementation based on the related [implicit treap](https://en.wikipedia.org/wiki/Treap#Implicit_treap) (providing dynamic array-like functionality). Which has better computational complexity _O(Log(N))_ on:
 
 - `insert(i, x)` - insert element `x` at index `i`
 - `remove(i)` - remove element at index `i`.
 
-than a regular `dynamic array`.
+than a regular dynamic array.
 
-The implementation of both are made fully persistent by means of path copying. That is, any operation that would otherwise mutate a treap (or implicit treap), instead produces a new treap, and does so using only `O(log(N))` extra space. This allow copies to be `O(1)` in time and space.
+The implementation of both are made fully persistent by means of path copying. That is, any operation that would otherwise mutate a treap (or implicit treap), instead produces a new treap, and does so using only _O(log(N))_ extra space. This allow copies to be _O(1)_ in time and space.
 
-The package contains implementations of the standard Dart `Set<T>` and `List<T>` interfaces, build on top of this foundation.
+The package contains implementations of the standard Dart `Set<T>` and `List<T>` interfaces, built on top of this foundation.
+
+## Core Treap Structures
+
+Before diving into the `Set` and `List` implementations, it's useful to understand the core persistent structures:
+
+### Ordered Treap (`TreapBase`)
+
+This is the fundamental ordered treap implementation, providing:
+
+- **Basic Operations:** `add`, `remove`, `find` (lookup by value), `has` (contains)
+- **Order Statistics:** `rank` (get index of value), `select` (get value at index)
+- **Accessors:** `first`, `last`, `firstOrDefault`, `lastOrDefault`, `prev`, `next`
+- **Properties:** `size`, `isEmpty`, `values` (ordered iterable)
+- **Range Operations:** `take`, `skip`
+- **Set Algebra:** `union`, `intersection`, `difference`
+- **Immutability:** `copy`
+
+### Implicit Treap (`ImplicitTreapBase`)
+
+This structure uses treaps to implement a persistent list/array with efficient index-based operations:
+
+- **Basic Operations:** `add` (append), `insert` (at index), `remove` (at index), `append` (concatenate another implicit treap)
+- **Accessors:** `[]` (index operator), `values` (iterable)
+- **Properties:** `size`
+- **Range Operations:** `take`, `skip`
+- **Immutability:** `copy`
+
+These base structures are used internally by `TreapSet` and `TreapList` respectively.
 
 ## TreapSet
 
-`TreapSet<T>` implements `Set<T>`. It resembles `SplayTreeSet<T>` in behavior, keeping elements ordered, but it differs on the computational complexity for:
+`TreapSet<T>` is a persistent, ordered set implementation based on the treap data structure. It implements Dart's `Set<T>` interface, providing familiar operations like:
 
-- `take`,
-- `skip`, and
-- `elementAt`,
+- **Adding/Removing:** `add`, `addAll`, `remove`, `removeAll`, `retainAll`, `clear`
+- **Querying:** `contains`, `lookup`, `length`, `isEmpty`
+- **Iteration:** `iterator`, `forEach`
+- **Set Operations:** `union`, `intersection`, `difference`
+- **Order-Based Operations:** `first`, `last`, `elementAt`, `take`, `skip`, `takeWhile`, `skipWhile`
 
-which are all `O(log(N))` (given `select` and `rank`) and `toSet` which is `O(1)`.
+Its performance characteristics differ from standard collections:
 
-Hence it scales better than all the three standard sets `LinkedHashSet` (default), `HashSet` and `SplayTreeSet` on these operations.
+### Performance Characteristics
 
-However there is no such thing as free lunch.
-As a rule of thumb the mutating operations `add`, `remove`, etc. are roughly twice as slow as for `SplaySetTree` (which is already a lot slower than `HashSet` and `LinkedHashSet`).
+- **Ordered Elements**: Like `SplayTreeSet<T>`, elements are kept in order.
+- **Efficient Range/Order Operations**: `take`, `skip`, and `elementAt` are all _O(log N)_, scaling better than standard sets.
+- **Constant-Time Copying**: `toSet()` (creating a copy) is _O(1)_ due to persistence.
+- **Mutation Speed**: Mutating operations (`add`, `remove`) are generally slower (roughly 2x) than `SplayTreeSet` due to path copying overhead and the native implementation of standard collections.
 
-This is mostly due to the cost of the _path copying_ done to make `Treap<T>` immutable, and the fact that `HashSet` and `LinkedHashSet` is implemented directly in the runtime.
+This makes TreapSet particularly well-suited for scenarios where:
+- Ordered iteration is required.
+- Frequent `take`, `skip`, or `elementAt` operations are performed.
+- Immutable snapshots of the set are needed (e.g., for history or concurrency).
 
-A benchmark suite can be found in _benchmark/set_main.dart_ comparing various set operations on the three standard sets and `TreapSet`.
+### Benchmarks
 
-Run with
+A benchmark suite comparing set operations is available in _benchmark/set_main.dart_:
 
 ```sh
+# Run with Dart
 dart run --no-enable-asserts benchmark/set_main.dart
-```
 
-or better yet, compile to exe and run the executable.
-
-```sh
+# Or compile to native executable for better performance
 dart compile exe benchmark/set_main.dart
 ./benchmark/set_main.exe
 ```
@@ -59,42 +92,57 @@ dart compile exe benchmark/set_main.dart
 import 'package:treap/treap.dart';
 
 void main() {
-  // Create a new TreapSet
-  final set = TreapSet<int>();
+  // Create sets
+  final set1 = TreapSet<int>();
+  final set2 = set1.add(1).add(2).add(3);  // Immutable operations
 
-  // Add elements
-  final set2 = set.add(1).add(2).add(3);
-
-  // Operations return new sets without modifying the original
-  print(set.isEmpty);  // true
-  print(set2.length);  // 3
+  // Original set remains unchanged
+  print(set1.isEmpty);  // true
+  print(set2.length);   // 3
 
   // Efficient set operations
-  final otherSet = TreapSet<int>.of([2, 3, 4]);
-  final union = set2.union(otherSet);        // [1, 2, 3, 4]
-  final intersection = set2.intersection(otherSet);  // [2, 3]
-  final difference = set2.difference(otherSet);      // [1]
+  final set3 = TreapSet<int>.of([2, 3, 4]);
+  final union = set2.union(set3);           // [1, 2, 3, 4]
+  final intersection = set2.intersection(set3);  // [2, 3]
+  final difference = set2.difference(set3);      // [1]
 
   // Order statistics
-  print(set2.elementAt(1));  // 2 (the element at index 1)
+  print(set2.elementAt(1));  // 2 (O(log N) operation)
 }
 ```
 
 ## TreapList
 
-`TreapList<T>` implements `List<T>`, but again differs on the computational complexity. No operations (including indexing) are better than `O(log(N))`, however `insert` and `remove` are also `O(log(N))`, so it scales much better than the regular `List` on these operations.
+`TreapList<T>` is a persistent list implementation based on the implicit treap data structure. It implements Dart's `List<T>` interface, providing familiar operations like:
 
-A benchmark suite can be found in _benchmark/list_main.dart_ comparing various list operations on the standard list with `TreapList`.
+- **Adding/Removing:** `add`, `addAll`, `insert`, `insertAll`, `remove`, `removeAt`, `removeLast`, `removeWhere`, `retainWhere`, `clear`
+- **Accessing Elements:** `[]` (index operator), `first`, `last`, `elementAt`
+- **Querying:** `length`, `isEmpty`, `isNotEmpty`
+- **Iteration:** `iterator`, `forEach`
+- **Range Operations:** `sublist`, `getRange`, `take`, `skip`, `takeWhile`, `skipWhile`
 
-Run with
+Its performance characteristics differ significantly from the standard `List`:
+
+### Performance Characteristics
+
+- **Logarithmic Access**: Element access operations (`[]`, first, last) are _O(log N)_, unlike standard List's O(1)
+- **Efficient Insertions/Deletions**: `insert` and `remove` are _O(log N)_, significantly better than standard List's O(N)
+- **Efficient Range Operations**: `sublist`, `getRange`, `take`, and `skip` are all _O(log N)_
+
+This makes TreapList particularly well-suited for scenarios where:
+- Elements are frequently inserted or removed at arbitrary positions
+- The list is frequently sliced into sublists
+- Immutability is required
+
+### Benchmarks
+
+A benchmark suite comparing list operations is available in _benchmark/list_main.dart_:
 
 ```sh
+# Run with Dart
 dart run --no-enable-asserts benchmark/list_main.dart
-```
 
-or better yet, compile to exe and run the executable.
-
-```sh
+# Or compile to native executable for better performance
 dart compile exe benchmark/list_main.dart
 ./benchmark/list_main.exe
 ```
@@ -105,101 +153,104 @@ dart compile exe benchmark/list_main.dart
 import 'package:treap/treap.dart';
 
 void main() {
-  // Create a new TreapList
+  // Create a list
   final list = TreapList<String>();
-
-  // Add elements
   list.add("apple");
   list.add("banana");
   list.add("cherry");
 
-  // Insert elements efficiently at any position
+  // Efficient operations at any position
   list.insert(1, "blueberry");  // O(log N) operation
-
-  // Remove elements efficiently from any position
   final removed = list.removeAt(2);  // O(log N) operation
 
   // Efficient sublist operations
   final sublist = list.sublist(1, 3);  // O(log N) operation
 
-  // Access elements
-  print(list[0]);  // "apple" - O(log N) operation, unlike O(1) in standard List
+  print(list[0]);  // "apple" - O(log N) access
 }
 ```
 
 ## Specialized Variants for Cross-Isolate Sharing
 
-The package includes specialized implementations for primitive types, marked with the deeply-immutable pragma for efficient cross-isolate communication:
+This package includes specialized implementations optimized for cross-isolate communication using Dart's `@pragma('vm:deeply-immutable')` annotation:
 
-### Specialized Sets
+### Specialized Collections
 
-- `TreapIntSet` - A specialized set for integers
-- `TreapStringSet` - A specialized set for strings
-- `TreapDoubleSet` - A specialized set for floating-point numbers
+| Type             | Purpose                     | Node Implementation |
+|------------------|-----------------------------|---------------------|
+| `TreapIntSet`    | Set of integers             | `IntNode`           |
+| `TreapStringSet` | Set of strings              | `StringNode`        |
+| `TreapDoubleSet` | Set of doubles              | `DoubleNode`        |
+| `TreapIntList`   | List of integers            | `IntNode`           |
+| `TreapStringList`| List of strings             | `StringNode`        |
+| `TreapDoubleList`| List of doubles             | `DoubleNode`        |
 
-### Specialized Lists
+### Benefits of Specialized Variants
 
-- `TreapIntList` - A specialized list for integers
-- `TreapStringList` - A specialized list for strings
-- `TreapDoubleList` - A specialized list for floating-point numbers
+- **Efficient Sharing**: The primary benefit is passing these collections *to* worker isolates without copying, crucial for large datasets or frequent isolate communication.
+- **Performance**: Avoids serialization/deserialization overhead, speeding up multi-threaded applications.
+- **Safety**: Deep immutability ensures safe concurrent access from multiple isolates.
 
-These specialized variants are designed for efficient sharing between Dart isolates. By using the deeply-immutable pragma, these collections can be passed between isolates without copying, which significantly improves performance in multi-threaded environments. The deeply immutable property ensures that the data structure can be safely accessed from multiple isolates simultaneously without risking data corruption.
+While returning data *from* an isolate can also benefit, simple return values are often handled efficiently by mechanisms like `Isolate.run`, which automatically merges the heaps upon completion. The main advantage of these specialized types lies in efficiently providing input data *to* the isolate.
 
-If you have your own deeply-immutable types that you want to store in cross-isolate friendly treap node, take a look at the `DeeplyImmutableNode` class in _lib/src/deeply_immutable_node.dart_. Due to the vm limitations that the `@pragma('vm:deeply-immutable')` can only be used on final or sealed classes, you will need to copy this to your own project. You may want to thumb-up this [issue](https://github.com/dart-lang/sdk/issues/55120) so we can avoid this oddness in the future.
+### Creating Custom Deeply-Immutable Types
 
-### Example Using Specialized List Types
+For your own deeply-immutable types, you can reference the `DeeplyImmutableNode` class in _lib/src/deeply_immutable_node.dart_.
+
+> **Note:** Due to VM limitations, `@pragma('vm:deeply-immutable')` can only be used on `final` or `sealed` classes. You'll need to copy this implementation to your own project. Consider supporting [this issue](https://github.com/dart-lang/sdk/issues/55120) for future improvements.
+
+### Cross-Isolate Usage Example
+
+This example demonstrates sending a specialized `TreapIntList` (which is deeply immutable) to another isolate. The list is accessed directly in the new isolate without any copying.
 
 ```dart
+import 'dart:isolate';
 import 'package:treap/treap.dart';
 
-void main() {
-  // Create specialized list for integers
-  final intList = TreapIntList();
-  intList.add(1);
-  intList.add(2);
-  intList.add(3);
+// Function to be executed in the new isolate.
+// It receives the TreapIntList directly.
+void processReadOnlyInIsolate(TreapIntList dataList) {
+  // Access the list directly in the new isolate.
+  // No copying occurred when passing the list.
+  print('Isolate received list with length: ${dataList.length}');
+  if (dataList.isNotEmpty) {
+    print('Isolate accessing first element: ${dataList.first}');
+  }
+  // No need to send data back for this example.
+}
 
-  // Create specialized list for strings
-  final stringList = TreapStringList.of(["apple", "banana", "cherry"]);
+void main() async {
+  // Create a specialized list in the main isolate.
+  final mainList = TreapIntList.of([10, 20, 30, 40, 50]);
 
-  // Create specialized list for doubles
-  final doubleList = TreapDoubleList();
-  doubleList.addAll([1.1, 2.2, 3.3]);
+  print('Main isolate created list: ${mainList.join(', ')}');
 
-  // These specialized lists can be efficiently sent between isolates
-  // without copying the underlying data structure
+  // Spawn the isolate, passing the TreapIntList directly.
+  // Because TreapIntList is deeply immutable, it's passed by reference (no copy).
+  try {
+    await Isolate.spawn(processReadOnlyInIsolate, mainList);
+    print('Isolate spawned successfully.');
+  } catch (e) {
+    print('Error spawning isolate: $e');
+  }
+
+  // Give the isolate some time to run and print its output.
+  await Future.delayed(Duration(seconds: 1));
+  print('Main isolate finished.');
 }
 ```
 
-## Implementation Details
+## Example Application
 
-Treaps combine the properties of binary search trees (BST) and heaps:
-- Each node has a key (used for BST ordering)
-- Each node has a priority value (used for heap ordering)
-- The tree maintains BST property by key and heap property by priority
+The package includes a [Todo Application Example (Flutter)](https://github.com/nielsenko/treap/blob/main/example) that demonstrates:
 
-The random priorities ensure that the tree remains balanced with high probability, providing O(log N) performance for operations without requiring complex rebalancing algorithms like AVL or Red-Black trees.
+- Using persistent treaps for efficient undo/redo functionality
+- Animating list view changes with persistent data structures
+- Maintaining application state history without memory overhead
 
-Path copying (also known as "path cloning" or "path copying persistence") is the technique used to make operations persistent:
-1. When modifying a node, create a new copy of it
-2. Also create new copies of all its ancestors
-3. Link the copies appropriately
-4. Return the new root
+You can try the application in your browser if it supports WebAssembly Garbage Collection (WasmGC):
+- Chrome 119+
+- Firefox 120+
+- Edge 119+
 
-This approach ensures that the original tree remains unchanged while using only O(log N) extra space per operation.
-
-## When to Use Treaps
-
-Treaps are particularly useful when:
-1. You need both ordered collections and efficient updates
-2. You require persistent/immutable data structures
-3. Order statistics operations (rank, select) are frequent
-4. You need efficient undo/redo capabilities
-5. Efficient operations on subsequences are required
-6. You need to share data structures between isolates (using specialized variants)
-
-## Example
-
-The package includes a toy [todo](https://github.com/nielsenko/treap/blob/main/example) flutter app, that illustrates how to use persistent treaps to efficiently handle undo/redo and animate a list view.
-
-If your browser supports WasmGC (such as Chrome 119+, or Firefox 120+), you can try out the app [here](https://byolimit.github.io)
+[Live Demo](https://byolimit.github.io)
