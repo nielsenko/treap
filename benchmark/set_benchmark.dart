@@ -34,7 +34,7 @@ class CtorBenchmark<S extends Set<T>, T> extends SetBenchmark<S, T> {
 
   @override
   void run() {
-    final s = setFactory(items); // SetT.of(items) (see main.dart)
+    setFactory(items); // SetT.of(items) (see main.dart)
   }
 }
 

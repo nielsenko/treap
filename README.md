@@ -129,9 +129,11 @@ void main() {
 
 ## Specialized Variants for Cross-Isolate Sharing
 
-The package includes specialized implementations for specific types:
+The package includes specialized implementations for primitive types:
 
-- `TreapIntSet` - A specialized set for integers that is marked with the deeply-immutable pragma
+- `TreapIntSet` - A specialized set for integers marked with the deeply-immutable pragma
+- `TreapStringSet` - A specialized set for strings marked with the deeply-immutable pragma
+- `TreapDoubleSet` - A specialized set for floating-point numbers marked with the deeply-immutable pragma
 
 These specialized variants are designed for efficient sharing between Dart isolates. By using the deeply-immutable pragma, these collections can be passed between isolates without copying, which significantly improves performance in multi-threaded environments. The deeply immutable property ensures that the data structure can be safely accessed from multiple isolates simultaneously without risking data corruption.
 

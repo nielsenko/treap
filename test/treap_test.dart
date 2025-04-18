@@ -203,7 +203,7 @@ void main() {
 
     group('Node', () {
       ImmutableNode<int> createNode(int value) =>
-          ImmutableNode<int>(value, randomPriority(value));
+          ImmutableNode<int>(value, Hash.hash(value, 42));
 
       final ctx = Comparable.compare as Comparator<int>;
 

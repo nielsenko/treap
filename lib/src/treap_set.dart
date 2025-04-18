@@ -217,3 +217,59 @@ extension type TreapIntSet._(TreapSetBase<int, IntNode> base)
 
   TreapIntSet toSet() => TreapIntSet._(base.toSet());
 }
+
+extension type TreapStringSet._(TreapSetBase<String, StringNode> base)
+    implements TreapSetBase<String, StringNode> {
+  TreapStringSet.of(Iterable<String> items, [Comparator<String>? compare])
+      : base = TreapSetBase.of(
+          items,
+          stringNodeFactory,
+          compare,
+        );
+
+  TreapStringSet() : this.of(<String>[]);
+
+  TreapStringSet union(TreapStringSet other) =>
+      TreapStringSet._(base.union(other.base));
+  TreapStringSet intersection(TreapStringSet other) =>
+      TreapStringSet._(base.intersection(other.base));
+  TreapStringSet difference(TreapStringSet other) =>
+      TreapStringSet._(base.difference(other.base));
+
+  TreapStringSet take(int count) => TreapStringSet._(base.take(count));
+  TreapStringSet takeWhile(bool Function(String value) test) =>
+      TreapStringSet._(base.takeWhile(test));
+  TreapStringSet skip(int count) => TreapStringSet._(base.skip(count));
+  TreapStringSet skipWhile(bool Function(String value) test) =>
+      TreapStringSet._(base.skipWhile(test));
+
+  TreapStringSet toSet() => TreapStringSet._(base.toSet());
+}
+
+extension type TreapDoubleSet._(TreapSetBase<double, DoubleNode> base)
+    implements TreapSetBase<double, DoubleNode> {
+  TreapDoubleSet.of(Iterable<double> items, [Comparator<double>? compare])
+      : base = TreapSetBase.of(
+          items,
+          doubleNodeFactory,
+          compare,
+        );
+
+  TreapDoubleSet() : this.of(<double>[]);
+
+  TreapDoubleSet union(TreapDoubleSet other) =>
+      TreapDoubleSet._(base.union(other.base));
+  TreapDoubleSet intersection(TreapDoubleSet other) =>
+      TreapDoubleSet._(base.intersection(other.base));
+  TreapDoubleSet difference(TreapDoubleSet other) =>
+      TreapDoubleSet._(base.difference(other.base));
+
+  TreapDoubleSet take(int count) => TreapDoubleSet._(base.take(count));
+  TreapDoubleSet takeWhile(bool Function(double value) test) =>
+      TreapDoubleSet._(base.takeWhile(test));
+  TreapDoubleSet skip(int count) => TreapDoubleSet._(base.skip(count));
+  TreapDoubleSet skipWhile(bool Function(double value) test) =>
+      TreapDoubleSet._(base.skipWhile(test));
+
+  TreapDoubleSet toSet() => TreapDoubleSet._(base.toSet());
+}
