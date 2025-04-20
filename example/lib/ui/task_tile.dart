@@ -62,7 +62,7 @@ class TaskTile extends StatelessWidget {
                     'Tap to ${task.completed ? 'undo completion' : 'complete'}',
                 child: Checkbox(
                   value: task.completed,
-                  onChanged: (v) => onCompletionChanged(v ?? false),
+                  onChanged: (value) => onCompletionChanged(value ?? false),
                 ),
               ),
             ),
