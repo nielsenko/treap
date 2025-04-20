@@ -41,11 +41,12 @@ abstract interface class Node<T, NodeT extends Node<T, NodeT>>
   NodeT withItem(T item);
 }
 
-final _rnd = Random();
+final _random = Random();
 
 /// Generates a random priority for a node item.
-int randomPriority(Object? item) =>
-    _rnd.nextInt(0xffff + 1); // dart2js friendly version of 1 << 32 (2^32)
+/// Returns a value between 0 and 65535 (inclusive).
+int randomPriority(Object? item) => _random.nextInt(
+    0xffff + 1); // 65536, dart2js friendly version (avoids bit-shift issues)
 
 /// Calculates a priority based on the item's hash code.
 int hashAsPriority(Object? i) => Object.hash(i, 1202);
@@ -364,11 +365,11 @@ NodeT _select<NodeT extends NodeBase<NodeT>>(
   int rank,
 ) {
   if (self == null) return noElement();
-  final (l, r) = self.expose;
-  final ls = l.size;
-  if (rank < ls) return select(l, rank);
-  if (rank == ls) return self;
-  return _select(r, rank - ls - 1);
+  final (left, right) = self.expose;
+  final leftSize = left.size;
+  if (rank < leftSize) return select(left, rank);
+  if (rank == leftSize) return self;
+  return _select(right, rank - leftSize - 1);
 }
 
 /// Computes the union of two treaps, `self` and `other`.
