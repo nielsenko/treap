@@ -91,7 +91,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        channel: [stable, beta] # drop master for now, due to https://github.com/pingbird/puro/issues/102
+        channel: [stable, beta, master]
         tools:
           - { platform: chrome, compiler: dart2js }
           - { platform: chrome, compiler: dart2wasm }

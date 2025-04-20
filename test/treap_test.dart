@@ -3,6 +3,7 @@
 import 'dart:math';
 
 import 'package:treap/src/deeply_immutable_node.dart';
+import 'package:treap/src/hash.dart';
 import 'package:treap/src/immutable_node.dart';
 import 'package:treap/src/node.dart';
 import 'package:treap/treap.dart';
