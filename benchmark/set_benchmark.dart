@@ -23,9 +23,9 @@ typedef SetFactory<S extends Set<T>, T> = S Function(Iterable<T> items);
 abstract class SetBenchmark<S extends Set<T>, T> extends BenchmarkBase {
   final SetFactory<S, T> setFactory;
   final List<T> items;
-  final int noOfItems; // count up front
+  final int numberOfItems; // count up front
   SetBenchmark(this.setFactory, this.items, String name)
-      : noOfItems = items.length,
+      : numberOfItems = items.length,
         super(name.padRight(40));
 }
 
@@ -67,21 +67,23 @@ class TakeBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
   TakeBenchmark(super.setFactory, super.items, [super.name = 'take']);
 
   @override
-  void run() => set.take(noOfItems ~/ 2).lastOrNull; // ensure iteration is done
+  void run() =>
+      set.take(numberOfItems ~/ 2).lastOrNull; // ensure iteration is done
 }
 
 class SkipBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
   SkipBenchmark(super.setFactory, super.items, [super.name = 'skip']);
 
   @override
-  void run() => set.skip(noOfItems ~/ 2).lastOrNull; // ensure iteration is done
+  void run() =>
+      set.skip(numberOfItems ~/ 2).lastOrNull; // ensure iteration is done
 }
 
 class ElementAtBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
   ElementAtBenchmark(super.setFactory, super.items, [super.name = 'elementAt']);
 
   @override
-  void run() => set.elementAt(noOfItems ~/ 2);
+  void run() => set.elementAt(numberOfItems ~/ 2);
 }
 
 abstract class BinaryOpBenchmark<S extends Set<T>, T>
@@ -92,7 +94,7 @@ abstract class BinaryOpBenchmark<S extends Set<T>, T>
 
   @override
   void setup() {
-    final third = noOfItems ~/ 3;
+    final third = numberOfItems ~/ 3;
     set = setFactory(items.take(2 * third));
     other = setFactory(items.skip(third));
   }
@@ -126,5 +128,5 @@ class ContainsBenchmark<S extends Set<T>, T> extends UnaryOpBenchmark<S, T> {
   ContainsBenchmark(super.setFactory, super.items, [super.name = 'contains']);
 
   @override
-  void run() => set.contains(items[noOfItems ~/ 2]);
+  void run() => set.contains(items[numberOfItems ~/ 2]);
 }

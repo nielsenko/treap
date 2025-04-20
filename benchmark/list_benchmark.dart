@@ -7,9 +7,9 @@ typedef ListFactory<L extends List<T>, T> = L Function(Iterable<T> items);
 abstract class ListBenchmark<L extends List<T>, T> extends BenchmarkBase {
   final ListFactory<L, T> listFactory;
   final List<T> items;
-  final int noOfItems; // count up front
+  final int numberOfItems; // count up front
   ListBenchmark(this.listFactory, this.items, String name)
-      : noOfItems = items.length,
+      : numberOfItems = items.length,
         super(name.padRight(40)); // Align padding with set_benchmark
 }
 
@@ -30,7 +30,7 @@ abstract class UnaryOpBenchmark<L extends List<T>, T>
   @override
   void setup() {
     list = listFactory(items);
-    assert(list.length == noOfItems);
+    assert(list.length == numberOfItems);
   }
 }
 
@@ -43,7 +43,7 @@ class InsertBenchmark<L extends List<T>, T> extends UnaryOpBenchmark<L, T> {
     // inserting again to ensure the list doesn't grow. Using the last element
     // should be an advantage for a regular list.
     final e = list.removeLast();
-    list.insert(noOfItems ~/ 2, e); // insert in the middle
+    list.insert(numberOfItems ~/ 2, e); // insert in the middle
   }
 }
 
@@ -52,7 +52,7 @@ class RemoveAtBenchmark<L extends List<T>, T> extends UnaryOpBenchmark<L, T> {
 
   @override
   void run() {
-    final e = list.removeAt(noOfItems ~/ 2);
+    final e = list.removeAt(numberOfItems ~/ 2);
     list.add(e); // to ensure list is same size on all runs
   }
 }
@@ -69,7 +69,7 @@ class TakeBenchmark<L extends List<T>, T> extends UnaryOpBenchmark<L, T> {
 
   @override
   void run() =>
-      list.take(noOfItems ~/ 2).lastOrNull; // ensure iteration is done
+      list.take(numberOfItems ~/ 2).lastOrNull; // ensure iteration is done
 }
 
 class SkipBenchmark<L extends List<T>, T> extends UnaryOpBenchmark<L, T> {
@@ -77,19 +77,19 @@ class SkipBenchmark<L extends List<T>, T> extends UnaryOpBenchmark<L, T> {
 
   @override
   void run() =>
-      list.skip(noOfItems ~/ 2).lastOrNull; // ensure iteration is done
+      list.skip(numberOfItems ~/ 2).lastOrNull; // ensure iteration is done
 }
 
 class IndexBenchmark<L extends List<T>, T> extends UnaryOpBenchmark<L, T> {
   IndexBenchmark(super.listFactory, super.items, [super.name = 'index']);
 
   @override
-  void run() => list[noOfItems ~/ 2];
+  void run() => list[numberOfItems ~/ 2];
 }
 
 class SublistBenchmark<L extends List<T>, T> extends UnaryOpBenchmark<L, T> {
   SublistBenchmark(super.listFactory, super.items, [super.name = 'sublist']);
 
   @override
-  void run() => list.sublist(noOfItems ~/ 4, noOfItems ~/ 2);
+  void run() => list.sublist(numberOfItems ~/ 4, numberOfItems ~/ 2);
 }
