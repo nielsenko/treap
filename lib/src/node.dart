@@ -2,30 +2,57 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
+/// Base interface for nodes in a Treap.
+///
+/// Contains properties common to all node types.
 abstract interface class NodeBase<NodeT extends NodeBase<NodeT>> {
+  /// The priority of this node, used for maintaining heap order.
   int get priority;
+
+  /// The size of the subtree rooted at this node (including the node itself).
   int get size;
+
+  /// The left child of this node.
   NodeT? get left;
+
+  /// The right child of this node.
   NodeT? get right;
 
+  /// Returns a copy of this node with the left child replaced.
   NodeT withLeft(NodeT? left);
+
+  /// Returns a copy of this node with the right child replaced.
   NodeT withRight(NodeT? right);
+
+  /// Returns a copy of this node with both children replaced.
   NodeT withChildren(NodeT? left, NodeT? right);
+
+  /// Returns a shallow copy of this node.
   NodeT copy();
 }
 
+/// Interface for nodes in a Treap that hold an item of type [T].
 abstract interface class Node<T, NodeT extends Node<T, NodeT>>
     extends NodeBase<NodeT> {
+  /// The item stored in this node.
   T get item;
+
+  /// Returns a copy of this node with the item replaced.
   NodeT withItem(T item);
 }
 
 final _rnd = Random();
+
+/// Generates a random priority for a node item.
 int randomPriority(Object? item) =>
     _rnd.nextInt(0xffff + 1); // dart2js friendly version of 1 << 32 (2^32)
 
+/// Calculates a priority based on the item's hash code.
 int hashAsPriority(Object? i) => Object.hash(i, 1202);
 
+/// The default priority function used when creating nodes.
+///
+/// Initially set to [hashAsPriority].
 var defaultPriority = hashAsPriority;
 
 Never noElement() => throw StateError('No element');
@@ -69,15 +96,18 @@ extension NodeBaseEx<NodeT extends NodeBase<NodeT>> on NodeT {
   }
   */
 
-  /// The minimum item in the treap.
+  /// The node containing the minimum item in the subtree rooted at this node.
   NodeT get first => left == null ? this : left!.first;
 
-  /// The maximum item in the treap.
+  /// The node containing the maximum item in the subtree rooted at this node.
   NodeT get last => right == null ? this : right!.last;
 
-  /// Is this a leaf node?
+  /// Whether this node is a leaf node (has no children).
   bool get isLeaf => left == null && right == null;
 
+  /// Checks if the invariants of the node (heap order) hold.
+  ///
+  /// Asserts violations in debug mode.
   bool checkInvariant() {
     // check heap order
     assert(priority >= 0, 'priority: $priority');
@@ -93,7 +123,9 @@ extension NodeBaseEx<NodeT extends NodeBase<NodeT>> on NodeT {
   }
 }
 
+/// Extension methods for nullable [NodeBase] references.
 extension NullableNodeEx<NodeT extends NodeBase<NodeT>> on NodeT? {
+  /// The size of the subtree rooted at this node, or 0 if the node is null.
   @pragma('vm:prefer-inline')
   int get size {
     // same as `this?.size ?? 0` but avoids boxing a temporary nullable int
@@ -102,6 +134,7 @@ extension NullableNodeEx<NodeT extends NodeBase<NodeT>> on NodeT? {
     return self.size;
   }
 
+  /// The priority of this node, or -1 if the node is null.
   @pragma('vm:prefer-inline')
   int get priority {
     // same as `this?.priority ?? -1` but avoids boxing a temporary nullable int
@@ -110,19 +143,27 @@ extension NullableNodeEx<NodeT extends NodeBase<NodeT>> on NodeT? {
     return self.priority;
   }
 
+  /// The node containing the minimum item, or null if the treap is empty.
   @pragma('vm:prefer-inline')
   NodeT? get firstOrNull => this?.first;
 
+  /// The node containing the maximum item, or null if the treap is empty.
   @pragma('vm:prefer-inline')
   NodeT? get lastOrNull => this?.last;
 
+  /// The node containing the minimum item.
+  ///
+  /// Throws [StateError] if the treap is empty.
   @pragma('vm:prefer-inline')
   NodeT get first => firstOrNull ?? noElement();
 
+  /// The node containing the maximum item.
+  ///
+  /// Throws [StateError] if the treap is empty.
   @pragma('vm:prefer-inline')
   NodeT get last => lastOrNull ?? noElement();
 
-  /// Iterates over the nodes in the treap in order.
+  /// Returns an iterable of the nodes in this treap in ascending order.
   Iterable<NodeT> inOrder() sync* {
     final self = this;
     if (self == null) return;
@@ -131,7 +172,7 @@ extension NullableNodeEx<NodeT extends NodeBase<NodeT>> on NodeT? {
     yield* self.right.inOrder();
   }
 
-  /// Iterates over the nodes in the treap in post-order.
+  /// Returns an iterable of the nodes in this treap in post-order traversal.
   Iterable<NodeT> postOrder() sync* {
     final self = this;
     if (self == null) return;
@@ -140,7 +181,7 @@ extension NullableNodeEx<NodeT extends NodeBase<NodeT>> on NodeT? {
     yield self;
   }
 
-  /// Iterates over the nodes in the treap in pre-order.
+  /// Returns an iterable of the nodes in this treap in pre-order traversal.
   Iterable<NodeT> preOrder() sync* {
     final self = this;
     if (self == null) return;
@@ -150,6 +191,11 @@ extension NullableNodeEx<NodeT extends NodeBase<NodeT>> on NodeT? {
   }
 }
 
+/// Joins three nodes `low`, `middle`, and `high` into a single treap.
+///
+/// Assumes that all items in `low` are less than `middle.item`,
+/// and all items in `high` are greater than `middle.item`.
+/// Preserves the heap order property based on node priorities.
 NodeT join<NodeT extends NodeBase<NodeT>>(
   NodeT? low,
   NodeT middle,
@@ -170,6 +216,12 @@ NodeT join<NodeT extends NodeBase<NodeT>>(
   return high!.withLeft(join(low, middle, high.left));
 }
 
+/// Splits the treap `self` into three parts based on the `pivot` item.
+///
+/// Returns a tuple `(left, found, right)` where:
+/// - `left` contains all items less than `pivot`.
+/// - `found` is true if `pivot` was found in the treap.
+/// - `right` contains all items greater than `pivot`.
 (NodeT?, bool, NodeT?) split<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T pivot,
@@ -189,6 +241,9 @@ NodeT join<NodeT extends NodeBase<NodeT>>(
   return (l, true, r);
 }
 
+/// Splits the treap `self` into its main part and the node with the maximum item.
+///
+/// Returns a tuple `(mainPart, lastNode)`.
 (NodeT?, NodeT) splitLast<NodeT extends NodeBase<NodeT>>(
   NodeT self,
 ) {
@@ -198,6 +253,9 @@ NodeT join<NodeT extends NodeBase<NodeT>>(
   return (join(left, self, rightLeft), last);
 }
 
+/// Joins two treaps `left` and `right`.
+///
+/// Assumes all items in `left` are less than all items in `right`.
 NodeT? join2<NodeT extends NodeBase<NodeT>>(
   NodeT? left,
   NodeT? right,
@@ -207,6 +265,11 @@ NodeT? join2<NodeT extends NodeBase<NodeT>>(
   return join(l, last, right);
 }
 
+/// Inserts or updates an item in the treap `self`.
+///
+/// If `allowUpdate` is true and an item equal to `item` already exists,
+/// it updates the existing item. Otherwise, it inserts `item`.
+/// Returns the root of the modified treap.
 NodeT upsert<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T item,
@@ -234,6 +297,10 @@ NodeT upsert<T, NodeT extends Node<T, NodeT>>(
   return allowUpdate ? self.withItem(item) : self;
 }
 
+/// Removes an item from the treap `self`.
+///
+/// Returns the root of the modified treap, or null if the item was not found
+/// and the original treap was empty.
 NodeT? erase<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T item,
@@ -247,6 +314,9 @@ NodeT? erase<T, NodeT extends Node<T, NodeT>>(
   return join2(l, r);
 }
 
+/// Finds the node containing an item equal to `item` in the treap `self`.
+///
+/// Returns the node if found, otherwise returns null.
 NodeT? find<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T item,
@@ -259,6 +329,9 @@ NodeT? find<T, NodeT extends Node<T, NodeT>>(
   return self; // order == 0
 }
 
+/// Returns the rank of the `item` in the treap `self`.
+///
+/// The rank is the number of items strictly less than `item`.
 int rank<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   T item,
@@ -272,6 +345,9 @@ int rank<T, NodeT extends Node<T, NodeT>>(
   return l.size; // order == 0
 }
 
+/// Returns the node at the given `rank` (0-based index) in the treap `self`.
+///
+/// Throws [RangeError] if `rank` is out of bounds.
 NodeT select<NodeT extends NodeBase<NodeT>>(
   NodeT? self,
   int rank,
@@ -295,6 +371,9 @@ NodeT _select<NodeT extends NodeBase<NodeT>>(
   return _select(r, rank - ls - 1);
 }
 
+/// Computes the union of two treaps, `self` and `other`.
+///
+/// Returns a new treap containing all items present in either treap.
 NodeT? union<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   NodeT? other,
@@ -310,6 +389,9 @@ NodeT? union<T, NodeT extends Node<T, NodeT>>(
   );
 }
 
+/// Computes the intersection of two treaps, `self` and `other`.
+///
+/// Returns a new treap containing only items present in both treaps.
 NodeT? intersection<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   NodeT? other,
@@ -322,6 +404,9 @@ NodeT? intersection<T, NodeT extends Node<T, NodeT>>(
   return b ? join(low, self, high) : join2(low, high);
 }
 
+/// Computes the difference of two treaps, `self` and `other` (`self` - `other`).
+///
+/// Returns a new treap containing items present in `self` but not in `other`.
 NodeT? difference<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   NodeT? other,
@@ -335,6 +420,10 @@ NodeT? difference<T, NodeT extends Node<T, NodeT>>(
   return b ? join2(low, high) : join(low, self, high);
 }
 
+/// Returns a new treap containing the first `n` items of the treap `self`.
+///
+/// If `n` is 0, returns an empty treap. If `n` is greater than or equal
+/// to the size of `self`, returns `self`.
 NodeT? take<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   int n,
@@ -346,6 +435,10 @@ NodeT? take<T, NodeT extends Node<T, NodeT>>(
   return low;
 }
 
+/// Returns a new treap containing all items of the treap `self` except the first `n`.
+///
+/// If `n` is 0, returns `self`. If `n` is greater than or equal to the size
+/// of `self`, returns an empty treap.
 NodeT? skip<T, NodeT extends Node<T, NodeT>>(
   NodeT? self,
   int n,
