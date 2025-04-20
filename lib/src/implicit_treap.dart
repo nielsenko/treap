@@ -70,6 +70,22 @@ final class ImplicitTreapBase<T, NodeT extends Node<T, NodeT>> {
     return _new(n.skip(_root, count));
   }
 
+  /// Returns the first item in this treap, or `null` if it is empty.
+  T? get firstOrDefault => _root.firstOrNull?.item;
+
+  /// Returns the last item in this treap, or `null` if it is empty.
+  T? get lastOrDefault => _root.lastOrNull?.item;
+
+  /// Returns the first item in this treap.
+  ///
+  /// Throws a [StateError] if it is empty.
+  T get first => _root.first.item;
+
+  /// Returns the last item in this treap.
+  ///
+  /// Throws a [StateError] if it is empty.
+  T get last => _root.last.item;
+
   /// Iterate over the items in the treap.
   Iterable<T> get values => _root.inOrder().map((n) => n.item);
 }
@@ -99,20 +115,4 @@ extension type ImplicitTreap<T>._(ImplicitTreapBase<T, ImmutableNode<T>> base)
 
   ImplicitTreap<T> append(ImplicitTreap<T> other) =>
       ImplicitTreap._(base.append(other.base));
-
-  /// Returns the first item in this treap, or `null` if it is empty.
-  T? get firstOrDefault => _root.firstOrNull?.item;
-
-  /// Returns the last item in this treap, or `null` if it is empty.
-  T? get lastOrDefault => _root.lastOrNull?.item;
-
-  /// Returns the first item in this treap.
-  ///
-  /// Throws a [StateError] if it is empty.
-  T get first => _root.first.item;
-
-  /// Returns the last item in this treap.
-  ///
-  /// Throws a [StateError] if it is empty.
-  T get last => _root.last.item;
 }
