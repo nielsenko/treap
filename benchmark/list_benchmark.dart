@@ -10,7 +10,7 @@ abstract class ListBenchmark<L extends List<T>, T> extends BenchmarkBase {
   final int noOfItems; // count up front
   ListBenchmark(this.listFactory, this.items, String name)
       : noOfItems = items.length,
-        super('$L '.padRight(20) + name.padRight(20));
+        super(name.padRight(40)); // Align padding with set_benchmark
 }
 
 class AddAllBenchmark<L extends List<T>, T> extends ListBenchmark<L, T> {

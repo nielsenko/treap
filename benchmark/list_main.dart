@@ -19,7 +19,7 @@ void runFor<L extends List<T>, T>(
 }
 
 int main(List<String> args) {
-  for (int n = 100; n <= 10000000; n *= 10) {
+  for (int n = 100; n <= 1000000; n *= 10) {
     print(''.padRight(80, '='));
     print('n: $n, log2(n): ${log2(n)}, n*log2(n): ${n * log2(n)}');
 
