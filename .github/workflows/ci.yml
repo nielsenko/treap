@@ -2,9 +2,9 @@ name: ci
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
     - cron: "0 0 * * 0" # every Sunday at 00:00 UTC
   workflow_dispatch: # allow manual triggering
@@ -76,7 +76,7 @@ jobs:
       - name: Generate test coverage
         run: |
           dart pub global activate coverage && \
-          dart pub global run coverage:test_with_coverage --branch-coverage --function-coverage
+          dart pub global run coverage:test_with_coverage --branch-coverage
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -93,9 +93,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         channel: [stable, beta] # drop master for now, due to https://github.com/pingbird/puro/issues/102
         tools:
-          - {platform: chrome, compiler: dart2js}
-          - {platform: chrome, compiler: dart2wasm}
-          - {platform: vm, compiler: kernel}
+          - { platform: chrome, compiler: dart2js }
+          - { platform: chrome, compiler: dart2wasm }
+          - { platform: vm, compiler: kernel }
     steps:
       - uses: actions/checkout@v4
       - name: Setup runner
@@ -105,8 +105,8 @@ jobs:
 
       - name: Run tests
         run: >-
-          dart test 
-          --platform=${{ matrix.tools.platform }} 
-          --compiler=${{ matrix.tools.compiler }} 
-          --reporter=expanded 
+          dart test
+          --platform=${{ matrix.tools.platform }}
+          --compiler=${{ matrix.tools.compiler }}
+          --reporter=expanded
           --concurrency=1
