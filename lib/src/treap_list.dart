@@ -3,10 +3,10 @@
 import 'dart:collection';
 
 import 'package:treap/src/deeply_immutable_node.dart';
+import 'package:treap/src/hash.dart';
 import 'package:treap/src/implicit_treap.dart';
 import 'immutable_node.dart';
 import 'node.dart';
-import 'treap_set.dart' show Hash;
 
 /// Base class for Treap-based list implementations.
 ///
