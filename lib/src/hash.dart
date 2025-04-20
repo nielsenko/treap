@@ -2,21 +2,32 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 abstract final class Hash {
+  // Use 32-bit constants suitable for dart2js
+  static const int _c1 = 0xcc9e2d51;
+  static const int _c2 = 0x1b873593;
+  static const int _n = 0xe6546b64;
+
   @pragma('vm:prefer-inline')
   static int combine(int hash, int value) {
-    hash ^= value + 0x9e3779b97f4a7c15;
-    hash = (hash ^ (hash >> 30)) * 0xbf58476d1ce4e5b9;
-    hash = (hash ^ (hash >> 27)) * 0x94d049bb133111eb;
+    // A 32-bit mixing function inspired by MurmurHash3
+    value = (value * _c1) & 0xFFFFFFFF;
+    value = (value << 15 | value >>> (32 - 15)) & 0xFFFFFFFF; // rotateLeft
+    value = (value * _c2) & 0xFFFFFFFF;
+
+    hash ^= value;
+    hash = (hash << 13 | hash >>> (32 - 13)) & 0xFFFFFFFF; // rotateLeft
+    hash = (hash * 5 + _n) & 0xFFFFFFFF;
     return hash;
   }
 
   @pragma('vm:prefer-inline')
   static int finish(int hash) {
-    hash ^= hash >> 33;
-    hash *= 0xff51afd7ed558ccd;
-    hash ^= hash >> 33;
-    hash *= 0xc4ceb9fe1a85ec53;
-    hash ^= hash >> 33;
+    // Final mixing (avalanching)
+    hash ^= hash >>> 16;
+    hash = (hash * 0x85ebca6b) & 0xFFFFFFFF;
+    hash ^= hash >>> 13;
+    hash = (hash * 0xc2b2ae35) & 0xFFFFFFFF;
+    hash ^= hash >>> 16;
     return hash;
   }
 
@@ -33,15 +44,20 @@ abstract final class Hash {
     return finish(hash);
   }
 
-  static int foo(int key) {
-    key = (~key + (key << 21)) & 0xFFFFFFFFFFFFFFFF;
-    key = key ^ (key >> 33);
-    key = ((key + (key << 3)) + (key << 8)) & 0xFFFFFFFFFFFFFFFF;
-    key = key ^ (key >> 29);
-    key = ((key + (key << 2)) + (key << 4)) & 0xFFFFFFFFFFFFFFFF;
-    key = key ^ (key >> 47);
-    return key;
+  static int hash3(int v1, int v2, int v3, int seed) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    return finish(hash);
   }
 
-  // add more as needed ..
+  static int hash4(int v1, int v2, int v3, int v4, int seed) {
+    int hash = seed;
+    hash = combine(hash, v1);
+    hash = combine(hash, v2);
+    hash = combine(hash, v3);
+    hash = combine(hash, v4);
+    return finish(hash);
+  }
 }
