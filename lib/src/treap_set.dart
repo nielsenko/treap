@@ -8,6 +8,9 @@ import 'immutable_node.dart';
 import 'node.dart';
 import 'node.dart' as node;
 
+/// Base class for Treap-based set implementations.
+///
+/// Provides a mutable set API on top of an immutable Treap.
 class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
   NodeT? _root;
   final NodeT Function(T) _createNode;
@@ -15,6 +18,10 @@ class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
 
   TreapSetBase._(this._root, this._createNode, this.compare);
 
+  /// Creates an empty [TreapSetBase].
+  ///
+  /// Requires a `createNode` function.
+  /// If [compare] is not provided, defaults to [Comparable.compare].
   TreapSetBase.empty(NodeT Function(T) createNode, [Comparator<T>? compare])
       : this._(
           null,
@@ -22,6 +29,10 @@ class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
           compare ?? Comparable.compare as Comparator<T>,
         );
 
+  /// Creates a [TreapSetBase] containing the [items].
+  ///
+  /// Requires a `createNode` function.
+  /// If [compare] is not provided, defaults to [Comparable.compare].
   factory TreapSetBase.of(
     Iterable<T> items,
     NodeT Function(T) createNode, [
@@ -43,9 +54,11 @@ class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
   @override
   bool contains(covariant T element) => lookup(element) != null;
 
+  /// An iterator over the elements of this set in ascending order.
   @override
   Iterator<T> get iterator => _root.inOrder().map((n) => n.item).iterator;
 
+  /// The number of elements in this set.
   @override
   int get length => _root.size;
 
@@ -59,6 +72,7 @@ class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
     return _root.size != oldSize; // shrunk
   }
 
+  /// Returns a new [TreapSetBase] with the same elements as this set.
   @override
   TreapSetBase<T, NodeT> toSet() =>
       TreapSetBase._(_root?.copy(), _createNode, compare);
@@ -67,14 +81,17 @@ class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
       ? this
       : TreapSetBase._(root, _createNode, compare);
 
+  /// Returns a new set which is the union of this set and [other].
   @override
   TreapSetBase<T, NodeT> union(covariant TreapSetBase<T, NodeT> other) =>
       _new(node.union(_root, other._root, compare));
 
+  /// Returns a new set which is the intersection of this set and [other].
   @override
   TreapSetBase<T, NodeT> intersection(covariant TreapSetBase<T, NodeT> other) =>
       _new(node.intersection(_root, other._root, compare));
 
+  /// Returns a new set with the elements of this set that are not in [other].
   @override
   TreapSetBase<T, NodeT> difference(covariant TreapSetBase<T, NodeT> other) =>
       _new(node.difference(_root, other._root, compare));
@@ -82,18 +99,25 @@ class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
   @override
   void clear() => _root = null;
 
+  /// Returns the element at the given [index] in the sorted iteration order.
   @override
   T elementAt(int index) => select(_root, index).item;
 
+  /// The first element in the sorted iteration order.
+  /// Throws [StateError] if the set is empty.
   @override
   T get first => _root.first.item;
 
+  /// Whether this set is empty.
   @override
   bool get isEmpty => _root == null;
 
+  /// The last element in the sorted iteration order.
+  /// Throws [StateError] if the set is empty.
   @override
   T get last => _root.last.item;
 
+  /// Returns a new set skipping the first [n] elements in sorted order.
   @override
   TreapSetBase<T, NodeT> skip(int n) => _new(node.skip(_root, n, compare));
 
@@ -106,20 +130,29 @@ class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
     return count;
   }
 
+  /// Returns a new set skipping leading elements while [test] is true.
   @override
   TreapSetBase<T, NodeT> skipWhile(bool Function(T value) test) =>
       skip(_countWhile(test));
 
+  /// Returns a new set containing the first [n] elements in sorted order.
   @override
   TreapSetBase<T, NodeT> take(int n) => _new(node.take(_root, n, compare));
 
+  /// Returns a new set containing the leading elements while [test] is true.
   @override
   TreapSetBase<T, NodeT> takeWhile(bool Function(T value) test) =>
       take(_countWhile(test));
 }
 
+/// A persistent set implementation based on a Treap.
+///
+/// Uses immutable nodes.
 extension type TreapSet<T>._(TreapSetBase<T, ImmutableNode<T>> base)
     implements TreapSetBase<T, ImmutableNode<T>> {
+  /// Creates a [TreapSet] containing the [items].
+  ///
+  /// If [compare] is not provided, defaults to [Comparable.compare].
   TreapSet.of(Iterable<T> items, [Comparator<T>? compare])
       : base = TreapSetBase.of(
           items,
@@ -127,19 +160,27 @@ extension type TreapSet<T>._(TreapSetBase<T, ImmutableNode<T>> base)
           compare,
         );
 
+  /// Creates an empty [TreapSet].
+  ///
+  /// If [compare] is not provided, defaults to [Comparable.compare].
   TreapSet([Comparator<T>? compare])
       : base = TreapSetBase.empty(immutableNodeFactory, compare);
 
   TreapSet<T> union(TreapSet<T> other) => TreapSet<T>._(base.union(other.base));
+
   TreapSet<T> intersection(TreapSet<T> other) =>
       TreapSet<T>._(base.intersection(other.base));
+
   TreapSet<T> difference(TreapSet<T> other) =>
       TreapSet<T>._(base.difference(other.base));
 
   TreapSet<T> take(int count) => TreapSet<T>._(base.take(count));
+
   TreapSet<T> takeWhile(bool Function(T value) test) =>
       TreapSet<T>._(base.takeWhile(test));
+
   TreapSet<T> skip(int count) => TreapSet<T>._(base.skip(count));
+
   TreapSet<T> skipWhile(bool Function(T value) test) =>
       TreapSet<T>._(base.skipWhile(test));
 

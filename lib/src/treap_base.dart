@@ -37,8 +37,9 @@ final class TreapBase<T, NodeT extends Node<T, NodeT>> {
 
   const TreapBase._(this._root, this._createNode, this.compare);
 
-  /// Creates an empty [Treap] with an optional [compare] function.
+  /// Creates an empty [TreapBase].
   ///
+  /// Requires a `createNode` function to instantiate nodes.
   /// If [compare] is not provided, it defaults to [Comparable.compare].
   TreapBase(NodeT Function(T) createNode, [Comparator<T>? compare])
       : this._(
@@ -47,7 +48,7 @@ final class TreapBase<T, NodeT extends Node<T, NodeT>> {
           compare ?? Comparable.compare as Comparator<T>,
         );
 
-  /// Builds a treap containing the [items].
+  /// Creates a [TreapBase] containing the [items].
   ///
   /// Constructs the treap by folding [add] over the [items], adding each one
   /// to the treap in turn.
@@ -80,117 +81,124 @@ final class TreapBase<T, NodeT extends Node<T, NodeT>> {
     return TreapBase._(root, createNode, compare);
   }
 
-  /// Creates a copy of this treap.
+  /// Returns a copy of this treap.
+  ///
+  /// This is an O(1) operation as it only copies the root reference.
   TreapBase<T, NodeT> copy() => _new(_root?.copy());
 
   TreapBase<T, NodeT> _new(NodeT? root) =>
       identical(root, _root) ? this : TreapBase._(root, _createNode, compare);
 
-  /// Adds an [item] to the treap.
+  /// Adds an [item] to this treap.
   ///
-  /// If the [item] is already present in the treap, the original treap is returned.
+  /// If the [item] is already present, returns the original treap.
   /// Otherwise, a new treap is returned with the item added.
   @pragma('vm:prefer-inline')
   TreapBase<T, NodeT> add(T item) =>
       _new(upsert(_root, item, false, compare, _createNode));
 
-  /// Adds or updates an [item] in the treap.
+  /// Adds or updates an [item] in this treap.
   ///
-  /// Returns a new treap with [item] either added or updated.
+  /// Returns a new treap with the [item] added or updated.
   @pragma('vm:prefer-inline')
   TreapBase<T, NodeT> addOrUpdate(T item) =>
       _new(upsert(_root, item, true, compare, _createNode));
 
-  /// Adds a range of [items] to the treap.
+  /// Adds all [items] to this treap.
   ///
-  /// Returns a new treap with the added [items]. If all the [items] are already
+  /// Returns a new treap containing all original items plus the added [items].
+  /// If an item already exists, it's ignored.
   /// present, the original treap is returned.
   @pragma('vm:prefer-inline')
   TreapBase<T, NodeT> addAll(Iterable<T> items) =>
       items.fold(this, (acc, i) => acc.add(i));
 
-  /// Removes an [item] from the treap, if it exists.
+  /// Removes an [item] from this treap.
   ///
-  /// Returns a new treap without the removed [item]. If the [item] was not present,
+  /// Returns a new treap without the [item]. If the [item] was not present,
   /// the original treap is returned.
   @pragma('vm:prefer-inline')
   TreapBase<T, NodeT> remove(T item) => _new(erase(_root, item, compare));
 
-  /// Checks whether this treap is empty.
+  /// Whether this treap is empty.
   bool get isEmpty => _root == null;
 
-  /// Returns the size of this treap.
+  /// The number of items in this treap.
   int get size => _root.size;
 
-  /// Finds the [item] in this treap.
+  /// Finds the item in this treap equal to [item].
   ///
-  /// Returns the [T] in the treap, if any, that orders together with [item] by [compare].
+  /// Returns the stored item if found, according to [compare].
   /// Otherwise returns `null`.
   T? find(T item) => node.find(_root, item, compare)?.item;
 
-  /// Checks whether an [item] exists in this treap.
+  /// Whether this treap contains an item equal to [item].
   bool has(T item) => find(item) != null;
 
-  /// Returns the rank of an [item].
+  /// Returns the rank of [item] in the sorted sequence of items.
   ///
-  /// For an [item] in this treap, the rank is the index of the item. For an item not
+  /// The rank is the number of items strictly less than [item].
+  /// For an [item] in this treap, the rank is its index. For an item not
   /// in this treap, the rank is the index it would be at, if it was added.
   int rank(T item) => node.rank(_root, item, compare);
 
-  /// Selects an item in this treap by its [index].
+  /// Returns the item at the given [index] in the sorted sequence.
+  ///
+  /// Throws [RangeError] if the [index] is out of bounds.
   T select(int index) => node.select(_root, index).item;
 
-  /// Returns the values in this treap ordered by the [compare].
+  /// An [Iterable] of the items in this treap in ascending order according to [compare].
   Iterable<T> get values => _root.inOrder().map((n) => n.item);
 
-  /// Returns the first item in this treap, or `null` if it is empty.
+  /// The first item in the sorted sequence, or `null` if this treap is empty.
   T? get firstOrDefault => _root.firstOrNull?.item;
 
-  /// Returns the last item in this treap, or `null` if it is empty.
+  /// The last item in the sorted sequence, or `null` if this treap is empty.
   T? get lastOrDefault => _root.lastOrNull?.item;
 
-  /// Returns the first item in this treap.
+  /// The first item in the sorted sequence.
   ///
-  /// Throws a [StateError] if it is empty.
+  /// Throws a [StateError] if this treap is empty.
   T get first => _root.first.item;
 
-  /// Returns the last item in this treap.
+  /// The last item in the sorted sequence.
   ///
-  /// Throws a [StateError] if it is empty.
+  /// Throws a [StateError] if this treap is empty.
   T get last => _root.last.item;
 
-  /// Returns the item preceding a given [item] in this treap.
+  /// Returns the item preceding [item] in the sorted sequence.
   ///
-  /// Throws a [RangeError] if no such item exists. Note that [item] need not be
+  /// Throws [RangeError] if [item] is the first item or not found.
+  /// Note that [item] need not be contained in this treap.
   /// contained in this treap.
   T prev(T item) => node.select(_root, rank(item) - 1).item;
 
-  /// Returns the next item in the treap for a given [item].
+  /// Returns the item succeeding [item] in the sorted sequence.
   ///
-  /// [item] need not be contained in this treap.
+  /// Note that [item] need not be contained in this treap.
   /// Throws a [RangeError] if no such item exists.
   T next(T item) => node.select(_root, rank(item) + 1).item;
 
-  /// Returns a new treap with the first [n] items.
+  /// Returns a new treap containing the first [n] items of the sorted sequence.
   ///
-  /// Returns the original treap, if [n] is greater than the [size] of this treap.
+  /// Returns the original treap if [n] >= [size].
   TreapBase<T, NodeT> take(int n) => _new(node.take(_root, n, compare));
 
-  /// Skips the first [n] items and returns a new treap with the remaining items.
+  /// Returns a new treap skipping the first [n] items of the sorted sequence.
   ///
-  /// Returns an empty treap, if [n] is greater than or equal to the [size] of this
+  /// Returns an empty treap if [n] >= [size].
   /// treap.
   TreapBase<T, NodeT> skip(int n) => _new(node.skip(_root, n, compare));
 
-  /// Returns a new treap that is the union of this treap and the [other] treap.
+  /// Returns a new treap containing all items from this treap and [other].
   TreapBase<T, NodeT> union(TreapBase<T, NodeT> other) =>
       _new(node.union(_root, other._root, compare));
 
-  /// Returns a new treap that is the intersection of this treap and the [other] treap.
+  /// Returns a new treap containing only items present in both this treap and [other].
   TreapBase<T, NodeT> intersection(TreapBase<T, NodeT> other) =>
       _new(node.intersection(_root, other._root, compare));
 
-  /// Returns a new treap that is the difference of this treap minus the [other] treap.
+  /// Returns a new treap containing items from this treap that are not in [other].
   TreapBase<T, NodeT> difference(TreapBase<T, NodeT> other) =>
       _new(node.difference(_root, other._root, compare));
 
@@ -212,28 +220,49 @@ final class TreapBase<T, NodeT extends Node<T, NodeT>> {
   T operator [](int index) => select(index);
 }
 
+/// A persistent treap implementation using immutable nodes.
+///
+/// Provides efficient insertion, deletion, and lookup operations (O(log N)).
 extension type Treap<T>._(TreapBase<T, ImmutableNode<T>> base)
     implements TreapBase<T, ImmutableNode<T>> {
+  /// Creates an empty [Treap].
   Treap() : base = TreapBase(immutableNodeFactory);
 
+  /// Creates a [Treap] containing the [items].
   Treap.of(Iterable<T> items)
       : base = TreapBase.of(
           items,
           immutableNodeFactory,
         );
 
+  /// Returns a copy of this treap.
   Treap<T> copy() => Treap._(base.copy());
 
+  /// Adds an [item] to this treap.
   Treap<T> add(T item) => Treap._(base.add(item));
+
+  /// Adds or updates an [item] in this treap.
   Treap<T> addOrUpdate(T item) => Treap._(base.addOrUpdate(item));
+
+  /// Adds all [items] to this treap.
   Treap<T> addAll(Iterable<T> items) => Treap._(base.addAll(items));
+
+  /// Removes an [item] from this treap.
   Treap<T> remove(T item) => Treap._(base.remove(item));
 
+  /// Returns a new treap containing the first [count] items.
   Treap<T> take(int count) => Treap._(base.take(count));
+
+  /// Returns a new treap skipping the first [count] items.
   Treap<T> skip(int count) => Treap._(base.skip(count));
 
+  /// Returns the union of this treap and [other].
   Treap<T> union(Treap<T> other) => Treap._(base.union(other.base));
+
+  /// Returns the intersection of this treap and [other].
   Treap<T> intersection(Treap<T> other) =>
       Treap._(base.intersection(other.base));
+
+  /// Returns the difference of this treap minus [other].
   Treap<T> difference(Treap<T> other) => Treap._(base.difference(other.base));
 }

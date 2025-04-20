@@ -8,6 +8,9 @@ import 'immutable_node.dart';
 import 'node.dart';
 import 'treap_set.dart' show Hash;
 
+/// Base class for Treap-based list implementations.
+///
+/// Provides a mutable list API on top of an immutable [ImplicitTreapBase].
 class TreapListBase<T, NodeT extends Node<T, NodeT>> extends ListBase<T> {
   ImplicitTreapBase<T, NodeT> _treap;
   final NodeT Function(T) _createNode;
@@ -21,6 +24,9 @@ class TreapListBase<T, NodeT extends Node<T, NodeT>> extends ListBase<T> {
       : _treap = ImplicitTreapBase<T, NodeT>.empty(createNode),
         _createNode = createNode;
 
+  /// Creates a [TreapListBase] containing the [items].
+  ///
+  /// Requires a `createNode` function.
   factory TreapListBase.of(
     Iterable<T> items,
     NodeT Function(T) createNode,
@@ -32,6 +38,9 @@ class TreapListBase<T, NodeT extends Node<T, NodeT>> extends ListBase<T> {
   @override
   int get length => _treap.size;
 
+  /// Setting the length is only supported for truncation.
+  ///
+  /// Setting a larger length is ignored.
   @override
   set length(int newLength) {
     if (newLength < length) _treap = _treap.take(newLength);
@@ -81,6 +90,9 @@ class TreapListBase<T, NodeT extends Node<T, NodeT>> extends ListBase<T> {
   TreapListBase<T, NodeT> getRange(int start, int end) =>
       TreapListBase._(_treap.skip(start).take(end - start), _createNode);
 
+  /// Returns a new [TreapListBase] containing the same elements.
+  ///
+  /// The `growable` parameter is ignored.
   @override
   TreapListBase<T, NodeT> toList({bool growable = true}) {
     // We just ignore growable for now.
@@ -96,14 +108,19 @@ class TreapListBase<T, NodeT extends Node<T, NodeT>> extends ListBase<T> {
       TreapListBase._(_treap.skip(count), _createNode);
 }
 
+/// A persistent list implementation based on a Treap.
+///
+/// Uses immutable nodes.
 extension type TreapList<T>._(TreapListBase<T, ImmutableNode<T>> base)
     implements TreapListBase<T, ImmutableNode<T>> {
+  /// Creates a [TreapList] containing the [items].
   TreapList.of(Iterable<T> items)
       : base = TreapListBase.of(
           items,
           immutableNodeFactory,
         );
 
+  /// Creates an empty [TreapList].
   TreapList() : this.of(<T>[]);
 
   TreapList<T> take(int count) => TreapList._(base.take(count));
