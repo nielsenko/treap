@@ -26,8 +26,8 @@ class _TodoListPageState extends State<TodoListPage> {
   var showCompleted = true;
 
   Treap<Task> get tasks {
-    final l = history.currentList;
-    return showCompleted ? l.all : l.uncompleted;
+    final currentList = history.currentList;
+    return showCompleted ? currentList.all : currentList.uncompleted;
   }
 
   void _updateList(void Function() action, {bool fastRemove = false}) {
@@ -43,7 +43,7 @@ class _TodoListPageState extends State<TodoListPage> {
             return TaskTile(
               key: ValueKey(task.id),
               task: task,
-              onCompletionChanged: (v) => _setCompletion(task, v),
+              onCompletionChanged: (value) => _setCompletion(task, value),
               animation: animation,
             );
           },
@@ -71,23 +71,23 @@ class _TodoListPageState extends State<TodoListPage> {
 
   void _editTask(Task old, Task current) {
     _updateList(() {
-      history.change((tl) {
-        return tl.remove(old).addOrUpdate(
+      history.change((todoList) {
+        return todoList.remove(old).addOrUpdate(
             current); // remove first in case primary key is updated
       });
     });
   }
 
-  void _removeTask(Task t) {
+  void _removeTask(Task task) {
     _updateList(() {
-      history.change((tl) => tl.remove(t));
+      history.change((todoList) => todoList.remove(task));
     }, fastRemove: true);
   }
 
-  void _setCompletion(Task t, bool completed) {
+  void _setCompletion(Task task, bool completed) {
     _updateList(() {
-      history.change((tl) {
-        return tl.addOrUpdate(t.copyWith(completed: completed));
+      history.change((todoList) {
+        return todoList.addOrUpdate(task.copyWith(completed: completed));
       });
     });
   }
@@ -120,7 +120,7 @@ class _TodoListPageState extends State<TodoListPage> {
                     key: ValueKey(task.id),
                     task: task,
                     onCompletionChanged: (v) => _setCompletion(task, v),
-                    onDismissed: (d) => _removeTask(task),
+                    onDismissed: (direction) => _removeTask(task),
                     onTap: () async {
                       _editTask(
                         task,
@@ -210,9 +210,9 @@ class _TodoListPageState extends State<TodoListPage> {
                         min: 0,
                         max: max.toDouble(),
                         divisions: max,
-                        onChanged: (v) {
+                        onChanged: (value) {
                           _updateList(() {
-                            history.current = v.toInt();
+                            history.current = value.toInt();
                           });
                         },
                       ),
