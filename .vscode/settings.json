@@ -11,6 +11,6 @@
         "treaps",
         "upsert"
     ],
-    "dart.flutterSdkPath": "/Users/kasper/.puro/envs/beta/flutter",
-    "dart.sdkPath": "/Users/kasper/.puro/envs/beta/flutter/bin/cache/dart-sdk"
+    "dart.flutterSdkPath": "/Users/kasper/.puro/envs/stable/flutter",
+    "dart.sdkPath": "/Users/kasper/.puro/envs/stable/flutter/bin/cache/dart-sdk"
 }
