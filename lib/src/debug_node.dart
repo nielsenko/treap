@@ -37,12 +37,12 @@ final class DebugNode<T> implements Node<T, DebugNode<T>> {
     leafHeightSum = left.leafHeightSum + right.leafHeightSum + leafCount;
     assert(() {
       assert(checkInvariant());
-      final opt = optimalHeight;
-      final avg = averageHeight.ceil();
-      assert(opt <= avg, toString());
-      assert(avg <= maxHeight, toString());
+      final optimalHeight = this.optimalHeight;
+      final averageHeightCeil = averageHeight.ceil();
+      assert(optimalHeight <= averageHeightCeil, toString());
+      assert(averageHeightCeil <= maxHeight, toString());
       assert(
-        avg <= acceptableSkewFactor * opt,
+        averageHeightCeil <= acceptableSkewFactor * optimalHeight,
         'optimalHeight == $optimalHeight, $this',
       );
       return true;

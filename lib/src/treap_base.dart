@@ -170,7 +170,6 @@ final class TreapBase<T, NodeT extends Node<T, NodeT>> {
   ///
   /// Throws [RangeError] if [item] is the first item or not found.
   /// Note that [item] need not be contained in this treap.
-  /// contained in this treap.
   T prev(T item) => node.select(_root, rank(item) - 1).item;
 
   /// Returns the item succeeding [item] in the sorted sequence.
