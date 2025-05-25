@@ -3,8 +3,9 @@
 import 'dart:collection';
 import 'dart:math';
 
-import 'package:treap/src/treap_set.dart';
+import 'package:treap/deeply_immutable.dart';
 import 'package:treap/src/util.dart';
+//import 'package:treap/treap.dart';
 
 import 'set_benchmark.dart';
 
@@ -41,7 +42,7 @@ int main(List<String> args) {
 
     runFor((items) => SplayTreeSet.of(items, intCompare), (i) => i, n);
     //runFor((items) => TreapSet.of(items, intCompare), (i) => i, n);
-    runFor((items) => TreapIntSet.of(items, intCompare), (i) => i, n);
+    runFor((items) => TreapSetOfInt.of(items, intCompare), (i) => i, n);
     runFor((items) => LinkedHashSet.of(items), (i) => i, n);
     runFor((items) => HashSet.of(items), (i) => i, n);
   }

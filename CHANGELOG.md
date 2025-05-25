@@ -1,10 +1,9 @@
 ## 0.4.0
 
 ### New Features & API Enhancements
-* Added specialized, efficient `TreapStringSet` and `TreapDoubleSet` for cross-isolate use.
-* Added specialized list variants for primitive types (`TreapIntList`, `TreapDoubleList`, `TreapBoolList`, `TreapStringList`).
+* Added specialized set variants for deeply immutable primitive types (`TreapSetOfInt`, `TreapSetOfDouble` and `TreapSetOfString` for sets, and `TreapListOfInt`, `TreapListOfDouble`, and `TreapListOfString` for lists) for efficient cross-isolate use.
 * Introduced a settable `defaultPriority` function, defaulting to a hash of the item, making priorities customizable.
-* Allowed all collection types (`TreapMap`, `TreapSet`, `TreapList`) to be parameterized by a custom `NodeT` type for advanced usage and flexibility.
+* Allowed all collection types (`TreapMapBase`, `TreapSetBase`, `TreapListBase`) to be parameterized by a custom `NodeT` type for advanced usage and flexibility.
 
 ### Refactoring & Internal Improvements
 * Introduced `TreapBase` and `ImplicitTreapBase` to consolidate common logic.

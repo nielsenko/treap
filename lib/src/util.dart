@@ -1,6 +1,5 @@
 // Copyright 2025, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
-
 import 'dart:math';
 
 final _base = log(2);
