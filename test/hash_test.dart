@@ -1,4 +1,4 @@
-// Copyright 2024 - 2024, kasper@byolimit.com
+// Copyright 2024 - 2025, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
 import 'package:test/test.dart';
 import 'package:treap/src/hash.dart'; // Assuming Hash class is in src/hash.dart
