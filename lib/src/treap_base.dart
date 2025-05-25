@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'deeply_immutable_node.dart';
 
 import 'immutable_node.dart';
 import 'node.dart';
@@ -264,4 +265,122 @@ extension type Treap<T>._(TreapBase<T, ImmutableNode<T>> base)
 
   /// Returns the difference of this treap minus [other].
   Treap<T> difference(Treap<T> other) => Treap._(base.difference(other.base));
+}
+
+/// A persistent treap implementation using immutable nodes.
+///
+/// Provides efficient insertion, deletion, and lookup operations (O(log N)).
+extension type IntTreap._(TreapBase<int, IntNode> base)
+    implements TreapBase<int, IntNode> {
+  /// Creates a [Treap] containing the [items].
+  IntTreap.of(Iterable<int> items, [Comparator<int>? compare])
+      : base = TreapBase.of(
+          items,
+          intNodeFactory,
+          compare ?? (a, b) => a - b,
+        );
+
+  /// Returns a copy of this treap.
+  IntTreap copy() => IntTreap._(base.copy());
+
+  /// Adds an [item] to this treap.
+  IntTreap add(int item) => IntTreap._(base.add(item));
+
+  /// Adds or updates an [item] in this treap.
+  IntTreap addOrUpdate(int item) => IntTreap._(base.addOrUpdate(item));
+
+  /// Adds all [items] to this treap.
+  IntTreap addAll(Iterable<int> items) => IntTreap._(base.addAll(items));
+
+  /// Removes an [item] from this treap.
+  IntTreap remove(int item) => IntTreap._(base.remove(item));
+
+  /// Returns a new treap containing the first [count] items.
+  IntTreap take(int count) => IntTreap._(base.take(count));
+
+  /// Returns a new treap skipping the first [count] items.
+  IntTreap skip(int count) => IntTreap._(base.skip(count));
+
+  /// Returns the union of this treap and [other].
+  IntTreap union(IntTreap other) => IntTreap._(base.union(other.base));
+
+  /// Returns the intersection of this treap and [other].
+  IntTreap intersection(IntTreap other) =>
+      IntTreap._(base.intersection(other.base));
+
+  /// Returns the difference of this treap minus [other].
+  IntTreap difference(IntTreap other) =>
+      IntTreap._(base.difference(other.base));
+}
+
+/// A persistent treap implementation using immutable nodes.
+///
+/// Provides efficient insertion, deletion, and lookup operations (O(log N)).
+extension type StringTreap._(TreapBase<int, IntNode> base)
+    implements TreapBase<int, IntNode> {
+  /// Creates a [Treap] containing the [items].
+  StringTreap.of(Iterable<int> items, [Comparator<int>? compare])
+      : base = TreapBase.of(
+          items,
+          intNodeFactory,
+          compare ?? (a, b) => a - b,
+        );
+
+  StringTreap copy() => StringTreap._(base.copy());
+
+  StringTreap add(int item) => StringTreap._(base.add(item));
+
+  StringTreap addOrUpdate(int item) => StringTreap._(base.addOrUpdate(item));
+
+  StringTreap addAll(Iterable<int> items) => StringTreap._(base.addAll(items));
+
+  StringTreap remove(int item) => StringTreap._(base.remove(item));
+
+  StringTreap take(int count) => StringTreap._(base.take(count));
+
+  StringTreap skip(int count) => StringTreap._(base.skip(count));
+
+  StringTreap union(StringTreap other) => StringTreap._(base.union(other.base));
+
+  StringTreap intersection(StringTreap other) =>
+      StringTreap._(base.intersection(other.base));
+
+  StringTreap difference(StringTreap other) =>
+      StringTreap._(base.difference(other.base));
+}
+
+/// A persistent treap implementation using immutable nodes.
+///
+/// Provides efficient insertion, deletion, and lookup operations (O(log N)).
+extension type DoubleTreap._(TreapBase<int, IntNode> base)
+    implements TreapBase<int, IntNode> {
+  /// Creates a [Treap] containing the [items].
+  DoubleTreap.of(Iterable<int> items, [Comparator<int>? compare])
+      : base = TreapBase.of(
+          items,
+          intNodeFactory,
+          compare ?? (a, b) => a - b,
+        );
+
+  DoubleTreap copy() => DoubleTreap._(base.copy());
+
+  DoubleTreap add(int item) => DoubleTreap._(base.add(item));
+
+  DoubleTreap addOrUpdate(int item) => DoubleTreap._(base.addOrUpdate(item));
+
+  DoubleTreap addAll(Iterable<int> items) => DoubleTreap._(base.addAll(items));
+
+  DoubleTreap remove(int item) => DoubleTreap._(base.remove(item));
+
+  DoubleTreap take(int count) => DoubleTreap._(base.take(count));
+
+  DoubleTreap skip(int count) => DoubleTreap._(base.skip(count));
+
+  DoubleTreap union(DoubleTreap other) => DoubleTreap._(base.union(other.base));
+
+  DoubleTreap intersection(DoubleTreap other) =>
+      DoubleTreap._(base.intersection(other.base));
+
+  DoubleTreap difference(DoubleTreap other) =>
+      DoubleTreap._(base.difference(other.base));
 }
