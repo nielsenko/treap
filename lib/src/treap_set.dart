@@ -22,7 +22,7 @@ class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
   ///
   /// Requires a `createNode` function.
   /// If [compare] is not provided, defaults to [Comparable.compare].
-  TreapSetBase.empty(NodeT Function(T) createNode, [Comparator<T>? compare])
+  TreapSetBase(NodeT Function(T) createNode, [Comparator<T>? compare])
       : this._(
           null,
           createNode,
@@ -38,7 +38,7 @@ class TreapSetBase<T, NodeT extends Node<T, NodeT>> extends SetBase<T> {
     NodeT Function(T) createNode, [
     Comparator<T>? compare,
   ]) =>
-      TreapSetBase.empty(createNode, compare)..addAll(items);
+      TreapSetBase(createNode, compare)..addAll(items);
 
   @override
   bool add(T value) {
@@ -164,7 +164,7 @@ extension type TreapSet<T>._(TreapSetBase<T, ImmutableNode<T>> base)
   ///
   /// If [compare] is not provided, defaults to [Comparable.compare].
   TreapSet([Comparator<T>? compare])
-      : base = TreapSetBase.empty(immutableNodeFactory, compare);
+      : base = TreapSetBase(immutableNodeFactory, compare);
 
   TreapSet<T> union(TreapSet<T> other) => TreapSet<T>._(base.union(other.base));
 
