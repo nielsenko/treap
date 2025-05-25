@@ -1,6 +1,7 @@
 // Copyright 2024 - 2024, kasper@byolimit.com
 // SPDX-License-Identifier: BSD-3-Clause
 import 'package:meta/meta.dart';
+import 'package:treap/src/deeply_immutable_node.dart';
 
 import 'immutable_node.dart';
 import 'implicit_algo.dart' as n;
@@ -115,4 +116,76 @@ extension type ImplicitTreap<T>._(ImplicitTreapBase<T, ImmutableNode<T>> base)
 
   ImplicitTreap<T> append(ImplicitTreap<T> other) =>
       ImplicitTreap._(base.append(other.base));
+}
+
+extension type ImplicitIntTreap._(ImplicitTreapBase<int, IntNode> base)
+    implements ImplicitTreapBase<int, IntNode> {
+  ImplicitIntTreap.of(Iterable<int> items)
+      : base = ImplicitTreapBase.of(items, intNodeFactory);
+
+  ImplicitIntTreap take(int count) => ImplicitIntTreap._(base.take(count));
+
+  ImplicitIntTreap skip(int count) => ImplicitIntTreap._(base.skip(count));
+
+  ImplicitIntTreap copy() => ImplicitIntTreap._(base.copy());
+
+  ImplicitIntTreap remove(int index) => ImplicitIntTreap._(base.remove(index));
+
+  ImplicitIntTreap insert(int index, int item) =>
+      ImplicitIntTreap._(base.insert(index, item));
+
+  ImplicitIntTreap add(int item) => ImplicitIntTreap._(base.add(item));
+
+  ImplicitIntTreap append(ImplicitIntTreap other) =>
+      ImplicitIntTreap._(base.append(other.base));
+}
+
+extension type ImplicitStringTreap._(ImplicitTreapBase<String, StringNode> base)
+    implements ImplicitTreapBase<String, StringNode> {
+  ImplicitStringTreap.of(Iterable<String> items)
+      : base = ImplicitTreapBase.of(items, stringNodeFactory);
+
+  ImplicitStringTreap take(int count) =>
+      ImplicitStringTreap._(base.take(count));
+
+  ImplicitStringTreap skip(int count) =>
+      ImplicitStringTreap._(base.skip(count));
+
+  ImplicitStringTreap copy() => ImplicitStringTreap._(base.copy());
+
+  ImplicitStringTreap remove(int index) =>
+      ImplicitStringTreap._(base.remove(index));
+
+  ImplicitStringTreap insert(int index, String item) =>
+      ImplicitStringTreap._(base.insert(index, item));
+
+  ImplicitStringTreap add(String item) => ImplicitStringTreap._(base.add(item));
+
+  ImplicitStringTreap append(ImplicitStringTreap other) =>
+      ImplicitStringTreap._(base.append(other.base));
+}
+
+extension type ImplicitDoubleTreap._(ImplicitTreapBase<double, DoubleNode> base)
+    implements ImplicitTreapBase<double, DoubleNode> {
+  ImplicitDoubleTreap.of(Iterable<double> items)
+      : base = ImplicitTreapBase.of(items, doubleNodeFactory);
+
+  ImplicitDoubleTreap take(int count) =>
+      ImplicitDoubleTreap._(base.take(count));
+
+  ImplicitDoubleTreap skip(int count) =>
+      ImplicitDoubleTreap._(base.skip(count));
+
+  ImplicitDoubleTreap copy() => ImplicitDoubleTreap._(base.copy());
+
+  ImplicitDoubleTreap remove(int index) =>
+      ImplicitDoubleTreap._(base.remove(index));
+
+  ImplicitDoubleTreap insert(int index, double item) =>
+      ImplicitDoubleTreap._(base.insert(index, item));
+
+  ImplicitDoubleTreap add(double item) => ImplicitDoubleTreap._(base.add(item));
+
+  ImplicitDoubleTreap append(ImplicitDoubleTreap other) =>
+      ImplicitDoubleTreap._(base.append(other.base));
 }
