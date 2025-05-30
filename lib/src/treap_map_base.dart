@@ -20,11 +20,14 @@ class TreapMapBase<K, V, NodeT extends Node<KeyValue<K, V>, NodeT>>
   /// Creates an empty [TreapMapBase].
   ///
   /// Requires a `createNode` function and a key [compare] function.
-  TreapMapBase(NodeT Function(KeyValue<K, V>) createNode, Comparator<K> compare)
+  TreapMapBase(NodeT Function(KeyValue<K, V>) createNode,
+      [Comparator<K>? compare])
       : this._(
           null,
           createNode,
-          (a, b) => compare(a.key, b.key),
+          compare != null
+              ? (a, b) => compare(a.key, b.key)
+              : (a, b) => (Comparable.compare as Comparator<K>)(a.key, b.key),
         );
 
   @override

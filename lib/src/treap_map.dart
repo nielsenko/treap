@@ -12,6 +12,6 @@ extension type TreapMap<K, V>._(
   /// Creates an empty [TreapMap].
   ///
   /// Requires a key [compare] function.
-  TreapMap(Comparator<K> compare)
+  TreapMap([Comparator<K>? compare])
       : base = TreapMapBase(immutableNodeFactory, compare);
 }
