@@ -46,12 +46,12 @@ app.*.map.json
 /android/app/release
 
 # Platform specific files are ignored per default, since this is a sample project
-/android
-/ios
-/linux
-/macos
-/web
-/windows
+android/
+ios/
+linux/
+macos/
+web/
+windows/
 
 # .metadata ignored, since this is a sample project
 .metadata
