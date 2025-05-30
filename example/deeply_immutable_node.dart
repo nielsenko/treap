@@ -102,6 +102,7 @@ typedef TreapSetOfMyItem = TreapSetBase<Person, DeeplyImmutableNode<Person>>;
 
 Future<void> main() async {
   final persons = TreapSetOfMyItem.of([], deeplyImmutableNodeFactory);
-
-  await Isolate.run(() {});
+  await Isolate.run(() {
+    print(persons); // pass persons into another isolate without copy
+  });
 }
