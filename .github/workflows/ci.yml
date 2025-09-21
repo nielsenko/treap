@@ -56,7 +56,7 @@ jobs:
 
       - name: Install example dependencies
         run: flutter pub get
-        working-directory: example
+        working-directory: example/todo
 
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
