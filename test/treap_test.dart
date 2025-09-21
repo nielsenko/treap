@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 import 'dart:math';
 
-import 'package:test/test.dart';
+import 'package:test/scaffolding.dart';
+import 'package:checks/checks.dart';
 import 'package:treap/src/deeply_immutable/int_node.dart';
 import 'package:treap/src/hash.dart';
 import 'package:treap/src/immutable_node.dart';
@@ -28,49 +29,48 @@ void main() {
           final x = treapFactory() + 1;
           final y = x.add(1);
           final z = x.addOrUpdate(1);
-          expect(x, y);
-          expect(x, isNot(z));
+          check(x).equals(y);
+          check(x).not((it) => it.equals(z));
 
           // Be aware, that chaining with .. operator probably don't do what you want
           x
             ..add(2)
             ..add(3);
-          expect(x.values, [1]);
+          check(x.values).deepEquals([1]);
 
           final many = [1, 2, 3, 4, 5, 6, 7, 8, 9];
           final big = treapFactory(many..mix()); // shuffle,
           final big2 = treapFactory().addAll(many..mix()); // shuffle, then ..
-          expect(big.values, orderedEquals(big2.values));
-          expect(
-            big.values,
-            orderedEquals(many..sort(big.compare)), // .. sort again
-          );
+          check(big.values).deepEquals(big2.values);
+          check(big.values)
+              .deepEquals(many..sort(big.compare)); // .. sort again
 
-          expect(
-              big.remove(1).remove(0).remove(5).values, [2, 3, 4, 6, 7, 8, 9]);
+          check(big.remove(1).remove(0).remove(5).values)
+              .deepEquals([2, 3, 4, 6, 7, 8, 9]);
 
           final w = treapFactory([1]);
-          expect(x.values, w.values);
-          expect(x, isNot(w)); // equal items does not imply equality
+          check(x.values).deepEquals(w.values);
+          check(x)
+              .not((it) => it.equals(w)); // equal items does not imply equality
         });
 
         test('empty', () {
           final t = treapFactory();
-          expect(t.isEmpty, isTrue);
-          expect(t.values, const <int>[]);
+          check(t.isEmpty).isTrue();
+          check(t.values).deepEquals(const <int>[]);
         });
 
         test('duplicates', () {
           final t = treapFactory([1, 1, 1, 1, 1]);
-          expect(t.values, [1]);
+          check(t.values).deepEquals([1]);
         });
 
         test('copy', () {
           final t = treapFactory([1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
           final copy = t.copy();
-          expect(t.values, copy.values);
-          expect(t, copy); // for an immutable treap, this is true too
-          expect(identical(t, copy), isTrue);
+          check(t.values).deepEquals(copy.values);
+          check(t).equals(copy); // for an immutable treap, this is true too
+          check(identical(t, copy)).isTrue();
         });
       });
 
@@ -80,89 +80,87 @@ void main() {
           final items = [for (int i = 0; i < max; ++i) i]..mix();
           final t = treapFactory(items);
           for (final i in items) {
-            expect(t.find(i), isNotNull);
-            expect(t.rank(t.find(i)!), i);
-            expect(t.has(i), isTrue);
-            expect(t[t.rank(i)], i);
+            check(t.find(i)).isNotNull();
+            check(t.rank(t.find(i)!)).equals(i);
+            check(t.has(i)).isTrue();
+            check(t[t.rank(i)]).equals(i);
           }
           final foreigners = [for (int i = max; i < 2 * max; ++i) i]..mix();
           for (final i in foreigners) {
-            expect(t.find(i), isNull);
-            expect(t.rank(i), max);
-            expect(t.has(i), isFalse);
-            expect(() => t[t.rank(i)], throwsRangeError);
+            check(t.find(i)).isNull();
+            check(t.rank(i)).equals(max);
+            check(t.has(i)).isFalse();
+            check(() => t[t.rank(i)]).throws<RangeError>();
           }
           final empty = items.fold(t, (acc, i) => acc.remove(i));
-          expect(empty.isEmpty, isTrue);
+          check(empty.isEmpty).isTrue();
         });
 
         test('rank, select', () {
           final top = treapFactory([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
-          expect(top.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-          expect(top.values.map((i) => top.rank(i)),
-              [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-          expect(
-              [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                  .fold(true, (acc, i) => acc && top.select(i) == i),
-              isTrue);
+          check(top.values).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+          check(top.values.map((i) => top.rank(i)))
+              .deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+          check([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+              .fold(true, (acc, i) => acc && top.select(i) == i)).isTrue();
         });
 
         test('select when empty', () {
           final empty = treapFactory();
-          expect(() => empty.select(0), throwsRangeError);
+          check(() => empty.select(0)).throws<RangeError>();
         });
       });
 
       group('iterator', () {
         test('values', () {
           final t = treapFactory([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
-          expect(t.values, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+          check(t.values).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         });
 
         test('take, skip', () {
           final t = treapFactory([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
           for (var i = 0; i < t.size + 10; ++i) {
-            expect(t.take(i).values, t.values.take(i));
-            expect(t.skip(i).values, t.values.skip(i));
+            check(t.take(i).values).deepEquals(t.values.take(i));
+            check(t.skip(i).values).deepEquals(t.values.skip(i));
           }
           // same exception on negative input, as iterator
-          expect(() => t.values.take(-1), throwsRangeError);
-          expect(() => t.take(-1), throwsRangeError);
-          expect(() => t.values.skip(-1), throwsRangeError);
-          expect(() => t.skip(-1), throwsRangeError);
+          check(() => t.values.take(-1)).throws<RangeError>();
+          check(() => t.take(-1)).throws<RangeError>();
+          check(() => t.values.skip(-1)).throws<RangeError>();
+          check(() => t.skip(-1)).throws<RangeError>();
         });
 
         test('first, last, firstOrDefault, lastOrDefault', () {
           // same exception on empty treap, as on empty iterator
           final empty = treapFactory();
-          expect(() => empty.values.first, throwsStateError);
-          expect(() => empty.first, throwsStateError);
-          expect(empty.firstOrDefault, null);
-          expect(() => empty.values.last, throwsStateError);
-          expect(() => empty.last, throwsStateError);
-          expect(empty.lastOrDefault, null);
+          check(() => empty.values.first).throws<StateError>();
+          check(() => empty.first).throws<StateError>();
+          check(empty.firstOrDefault).isNull();
+          check(() => empty.values.last).throws<StateError>();
+          check(() => empty.last).throws<StateError>();
+          check(empty.lastOrDefault).isNull();
 
           final single = treapFactory([1]);
-          expect(single.first, single.last);
-          expect(single.first, single.firstOrDefault);
-          expect(single.first, single.lastOrDefault);
+          check(single.first).equals(single.last);
+          check(single.first).equals(single.firstOrDefault!);
+          check(single.first).equals(single.lastOrDefault!);
 
           final many = treapFactory([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
-          expect(many.first, many.values.first);
-          expect(many.first, 0);
-          expect(many.last, many.values.last);
-          expect(many.last, 9);
+          check(many.first).equals(many.values.first);
+          check(many.first).equals(0);
+          check(many.last).equals(many.values.last);
+          check(many.last).equals(9);
         });
 
         test('prev, next', () {
           final t = treapFactory([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
           final l = t.values.toList();
           for (var i = 1; i < l.length - 1; ++i) {
-            expect(t.prev(t.select(i)), l[i - 1]);
-            expect(t.next(t.select(i)), l[i + 1]);
+            check(t.prev(t.select(i))).equals(l[i - 1]);
+            check(t.next(t.select(i))).equals(l[i + 1]);
           }
-          expect(() => t.prev(0), throwsRangeError);
-          expect(() => t.next(t.last), throwsRangeError);
+          check(() => t.prev(0)).throws<RangeError>();
+          check(() => t.next(t.last)).throws<RangeError>();
         });
       });
 
@@ -171,18 +169,18 @@ void main() {
         final y = Treap.of(['bar', 'mitzvah']);
 
         test('union', () {
-          expect(x.union(y).values, ['bar', 'foo', 'mitzvah']);
-          expect((x | y).values, ['bar', 'foo', 'mitzvah']);
+          check(x.union(y).values).deepEquals(['bar', 'foo', 'mitzvah']);
+          check((x | y).values).deepEquals(['bar', 'foo', 'mitzvah']);
         });
 
         test('intersection', () {
-          expect(x.intersection(y).values, ['bar']);
-          expect((x & y).values, ['bar']);
+          check(x.intersection(y).values).deepEquals(['bar']);
+          check((x & y).values).deepEquals(['bar']);
         });
 
         test('difference', () {
-          expect(x.difference(y).values, ['foo']);
-          expect((x - y).values, ['foo']);
+          check(x.difference(y).values).deepEquals(['foo']);
+          check((x - y).values).deepEquals(['foo']);
         });
 
         test('performance', () {
@@ -194,9 +192,10 @@ void main() {
           final tx = Treap.of(x);
           final ty = Treap.of(y);
 
-          expect((tx | ty).values, x.union(y));
-          expect((tx & ty).values, x.intersection(y));
-          expect((tx - ty).values, x.difference(y));
+          check((tx | ty).values).deepEquals(x.union(y).toList()..sort());
+          check((tx & ty).values)
+              .deepEquals(x.intersection(y).toList()..sort());
+          check((tx - ty).values).deepEquals(x.difference(y).toList()..sort());
         });
       });
     });
@@ -215,44 +214,40 @@ void main() {
         final another = upsert(second, 3, true, ctx, createNode);
         final forth = upsert(third, 0, true, ctx, createNode);
 
-        expect(first.inOrder().map((n) => n.item), [1]);
-        expect(again.inOrder().map((n) => n.item), [1]);
-        expect(identical(first, again), false);
-        expect(second.inOrder().map((n) => n.item), [1, 2]);
-        expect(third.inOrder().map((n) => n.item), [1, 2, 3]);
-        expect(another.inOrder().map((n) => n.item), [1, 2, 3]);
-        expect(identical(third, another), false);
-        expect(forth.inOrder().map((n) => n.item), [0, 1, 2, 3]);
+        check(first.inOrder().map((n) => n.item)).deepEquals([1]);
+        check(again.inOrder().map((n) => n.item)).deepEquals([1]);
+        check(identical(first, again)).isFalse();
+        check(second.inOrder().map((n) => n.item)).deepEquals([1, 2]);
+        check(third.inOrder().map((n) => n.item)).deepEquals([1, 2, 3]);
+        check(another.inOrder().map((n) => n.item)).deepEquals([1, 2, 3]);
+        check(identical(third, another)).isFalse();
+        check(forth.inOrder().map((n) => n.item)).deepEquals([0, 1, 2, 3]);
 
-        expect(find(first, 1, ctx), isNotNull);
-        expect(find(first, 2, ctx), isNull);
+        check(find(first, 1, ctx)).isNotNull();
+        check(find(first, 2, ctx)).isNull();
 
-        expect(find(second, 1, ctx), isNotNull);
-        expect(find(second, 2, ctx), isNotNull);
+        check(find(second, 1, ctx)).isNotNull();
+        check(find(second, 2, ctx)).isNotNull();
 
         final fifth = erase(forth, 0, ctx);
-        expect(fifth!.inOrder().map((n) => n.item), [1, 2, 3]);
-        expect(identical(third, fifth), false);
+        check(fifth!.inOrder().map((n) => n.item)).deepEquals([1, 2, 3]);
+        check(identical(third, fifth)).isFalse();
 
-        expect(
-          erase(forth, 2, ctx)!.inOrder().map((n) => n.item),
-          [0, 1, 3],
-        );
+        check(erase(forth, 2, ctx)!.inOrder().map((n) => n.item))
+            .deepEquals([0, 1, 3]);
       });
 
       test('rank, select', () {
         final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold(
             createNode(0), (acc, i) => upsert(acc, i, true, ctx, createNode));
-        expect(
-            top.inOrder().map((n) => n.item), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        expect(top.inOrder().map((n) => rank(top, n.item, ctx)),
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        expect(rank(top, -1, ctx), 0); // -1 goes before all
-        expect(rank(top, 100, ctx), 10); // 100 goes after all
-        expect(
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                .fold(true, (acc, i) => acc && select(top, i).item == i),
-            isTrue);
+        check(top.inOrder().map((n) => n.item))
+            .deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        check(top.inOrder().map((n) => rank(top, n.item, ctx)))
+            .deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        check(rank(top, -1, ctx)).equals(0); // -1 goes before all
+        check(rank(top, 100, ctx)).equals(10); // 100 goes after all
+        check([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            .fold(true, (acc, i) => acc && select(top, i).item == i)).isTrue();
       });
 
       test('preOrder, inOrder, postOrder', () {
@@ -264,18 +259,12 @@ void main() {
           ImmutableNode(0, 0), // will have same priority (5, 0)
           (acc, i) => upsert(acc, i, true, ctx, node),
         );
-        expect(
-          top.inOrder().map((n) => n.item),
-          [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        );
-        expect(
-          top.preOrder().map((n) => n.item),
-          [7, 4, 2, 1, 0, 3, 6, 5, 8, 9],
-        );
-        expect(
-          top.postOrder().map((n) => n.item),
-          [0, 1, 3, 2, 5, 6, 4, 9, 8, 7],
-        );
+        check(top.inOrder().map((n) => n.item))
+            .deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        check(top.preOrder().map((n) => n.item))
+            .deepEquals([7, 4, 2, 1, 0, 3, 6, 5, 8, 9]);
+        check(top.postOrder().map((n) => n.item))
+            .deepEquals([0, 1, 3, 2, 5, 6, 4, 9, 8, 7]);
       });
     });
   }
