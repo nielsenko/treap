@@ -255,13 +255,20 @@ NodeT join<NodeT extends NodeBase<NodeT>>(
   return (join(left, self, rightLeft), last);
 }
 
-/// Joins two treaps `left` and `right`.
+/// Joins two trees `left` and `right`.
 ///
-/// Assumes all items in `left` are less than all items in `right`.
+/// Assumes all items in `left` are less than all items in `right`. One
+/// descent along the seam: at each step the root of `left` stays on top
+/// with probability `|left| / (|left| + |right|)`, else the root of
+/// `right` does. O(log n) expected, and the result is again a random
+/// binary search tree (Martinez and Roura, 1998).
 NodeT? join2<NodeT extends NodeBase<NodeT>>(NodeT? left, NodeT? right) {
   if (left == null) return right;
-  final (l, last) = splitLast(left);
-  return join(l, last, right);
+  if (right == null) return left;
+  if (joinRandom.nextInt(left.size + right.size) < left.size) {
+    return left.withRight(join2(left.right, right));
+  }
+  return right.withLeft(join2(left, right.left));
 }
 
 /// Inserts or updates an item in the treap `self`.
