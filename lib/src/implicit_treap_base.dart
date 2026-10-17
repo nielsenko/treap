@@ -14,7 +14,7 @@ final class ImplicitTreapBase<T, NodeT extends Node<T, NodeT>> {
 
   /// Creates an empty treap.
   const ImplicitTreapBase.empty(NodeT Function(T) createNode)
-      : this._(null, createNode);
+    : this._(null, createNode);
 
   /// Creates a treap from [items].
   factory ImplicitTreapBase.of(
@@ -30,6 +30,10 @@ final class ImplicitTreapBase<T, NodeT extends Node<T, NodeT>> {
 
   /// The number of items in the treap.
   int get size => _root.size;
+
+  /// The root node, for tests that measure the tree.
+  @visibleForTesting
+  NodeT? get root => _root;
 
   /// Creates a copy of this treap.
   ImplicitTreapBase<T, NodeT> copy() => _new(_root?.copy());

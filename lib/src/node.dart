@@ -6,7 +6,8 @@ import 'dart:math';
 ///
 /// Contains properties common to all node types.
 abstract interface class NodeBase<NodeT extends NodeBase<NodeT>> {
-  /// The priority of this node, used for maintaining heap order.
+  /// A per-node number kept for compatibility. [join] no longer reads it:
+  /// balance comes from a size-weighted coin at join time.
   int get priority;
 
   /// The size of the subtree rooted at this node (including the node itself).
@@ -46,7 +47,8 @@ final _random = Random();
 /// Generates a random priority for a node item.
 /// Returns a value between 0 and 65535 (inclusive).
 int randomPriority(Object? item) => _random.nextInt(
-    0xffff + 1); // 65536, dart2js friendly version (avoids bit-shift issues)
+  0xffff + 1,
+); // 65536, dart2js friendly version (avoids bit-shift issues)
 
 /// Calculates a priority based on the item's hash code.
 int hashAsPriority(Object? i) => Object.hash(i, 1202);
@@ -106,20 +108,12 @@ extension NodeBaseEx<NodeT extends NodeBase<NodeT>> on NodeT {
   /// Whether this node is a leaf node (has no children).
   bool get isLeaf => left == null && right == null;
 
-  /// Checks if the invariants of the node (heap order) hold.
+  /// Checks the invariants of the node.
   ///
-  /// Asserts violations in debug mode.
+  /// Since [join] balances by size rather than by priority there is no heap
+  /// order to check; the size must sum up.
   bool checkInvariant() {
-    // check heap order
-    assert(priority >= 0, 'priority: $priority');
-    assert(
-      left.priority <= priority,
-      'left: ${left.priority}, priority: $priority',
-    );
-    assert(
-      right.priority <= priority,
-      'right: ${right.priority}, priority: $priority',
-    );
+    assert(size == 1 + left.size + right.size, 'size: $size');
     return true;
   }
 }
@@ -192,27 +186,36 @@ extension NullableNodeEx<NodeT extends NodeBase<NodeT>> on NodeT? {
   }
 }
 
-/// Joins three nodes `low`, `middle`, and `high` into a single treap.
+/// The source of every coin flip in [join]. Reseed it to replay a run.
+Random joinRandom = Random(0x5EED);
+
+/// Joins three nodes `low`, `middle`, and `high` into a single tree.
 ///
 /// Assumes that all items in `low` are less than `middle.item`,
 /// and all items in `high` are greater than `middle.item`.
-/// Preserves the heap order property based on node priorities.
+///
+/// The root is chosen by a size-weighted coin: `low`'s root with
+/// probability `|low| / n`, `middle` with `1 / n`, `high`'s root with
+/// `|high| / n`, where `n` counts all three. That keeps the tree a random
+/// binary search tree (Martinez and Roura, 1998) with expected depth
+/// O(log n) even when subtrees are shared, as in `x = x.append(x)`. Stored
+/// priorities would be copied along with shared nodes, tie, and chain.
 NodeT join<NodeT extends NodeBase<NodeT>>(
   NodeT? low,
   NodeT middle,
   NodeT? high,
 ) {
-  final p = middle.priority;
-  if (p > low.priority && //
-      p > high.priority) {
+  final lowSize = low.size;
+  final pick = joinRandom.nextInt(lowSize + 1 + high.size);
+  if (pick < lowSize) {
+    return low!.withRight(join(low.right, middle, high));
+  }
+  if (pick == lowSize) {
     if (identical(middle.left, low) && //
         identical(middle.right, high)) {
       return middle; // reuse
     }
     return middle.withChildren(low, high);
-  }
-  if (low.priority > high.priority) {
-    return low!.withRight(join(low.right, middle, high));
   }
   return high!.withLeft(join(low, middle, high.left));
 }
@@ -245,9 +248,7 @@ NodeT join<NodeT extends NodeBase<NodeT>>(
 /// Splits the treap `self` into its main part and the node with the maximum item.
 ///
 /// Returns a tuple `(mainPart, lastNode)`.
-(NodeT?, NodeT) splitLast<NodeT extends NodeBase<NodeT>>(
-  NodeT self,
-) {
+(NodeT?, NodeT) splitLast<NodeT extends NodeBase<NodeT>>(NodeT self) {
   final (left, right) = self.expose;
   if (right == null) return (left, self);
   final (rightLeft, last) = splitLast(right);
@@ -257,10 +258,7 @@ NodeT join<NodeT extends NodeBase<NodeT>>(
 /// Joins two treaps `left` and `right`.
 ///
 /// Assumes all items in `left` are less than all items in `right`.
-NodeT? join2<NodeT extends NodeBase<NodeT>>(
-  NodeT? left,
-  NodeT? right,
-) {
+NodeT? join2<NodeT extends NodeBase<NodeT>>(NodeT? left, NodeT? right) {
   if (left == null) return right;
   final (l, last) = splitLast(left);
   return join(l, last, right);
@@ -282,18 +280,10 @@ NodeT upsert<T, NodeT extends Node<T, NodeT>>(
   final (l, T i, r) = self.expose;
   final order = compare(item, i);
   if (order < 0) {
-    return join(
-      upsert(l, item, allowUpdate, compare, createNode),
-      self,
-      r,
-    );
+    return join(upsert(l, item, allowUpdate, compare, createNode), self, r);
   }
   if (order > 0) {
-    return join(
-      l,
-      self,
-      upsert(r, item, allowUpdate, compare, createNode),
-    );
+    return join(l, self, upsert(r, item, allowUpdate, compare, createNode));
   }
   return allowUpdate ? self.withItem(item) : self;
 }
@@ -349,10 +339,7 @@ int rank<T, NodeT extends Node<T, NodeT>>(
 /// Returns the node at the given `rank` (0-based index) in the treap `self`.
 ///
 /// Throws [RangeError] if `rank` is out of bounds.
-NodeT select<NodeT extends NodeBase<NodeT>>(
-  NodeT? self,
-  int rank,
-) {
+NodeT select<NodeT extends NodeBase<NodeT>>(NodeT? self, int rank) {
   final size = self.size;
   if (self == null || rank < 0 || rank >= size) {
     throw RangeError.range(rank, 0, size - 1, 'rank');
@@ -360,10 +347,7 @@ NodeT select<NodeT extends NodeBase<NodeT>>(
   return _select(self, rank);
 }
 
-NodeT _select<NodeT extends NodeBase<NodeT>>(
-  NodeT? self,
-  int rank,
-) {
+NodeT _select<NodeT extends NodeBase<NodeT>>(NodeT? self, int rank) {
   if (self == null) return noElement();
   final (left, right) = self.expose;
   final leftSize = left.size;

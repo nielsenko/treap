@@ -15,11 +15,13 @@ void main() {
   for (final treapFactory in {
     ([Iterable<int>? items]) => Treap<int>.of(items ?? []),
     ([Iterable<int>? items]) => TreapBase<int, ImmutableNode<int>>.of(
-        items ?? [], immutableNodeFactory),
+      items ?? [],
+      immutableNodeFactory,
+    ),
     ([Iterable<int>? items]) =>
         TreapBase<int, IntNode>.of(items ?? [], intNodeFactory),
-//    ([Iterable<int>? items]) =>
-//        TreapBase<int, MutableNode<int>>.of(items ?? [], mutableNodeFactory),
+    //    ([Iterable<int>? items]) =>
+    //        TreapBase<int, MutableNode<int>>.of(items ?? [], mutableNodeFactory),
   }) {
     final treapType = treapFactory().runtimeType;
 
@@ -42,16 +44,19 @@ void main() {
           final big = treapFactory(many..mix()); // shuffle,
           final big2 = treapFactory().addAll(many..mix()); // shuffle, then ..
           check(big.values).deepEquals(big2.values);
-          check(big.values)
-              .deepEquals(many..sort(big.compare)); // .. sort again
+          check(
+            big.values,
+          ).deepEquals(many..sort(big.compare)); // .. sort again
 
-          check(big.remove(1).remove(0).remove(5).values)
-              .deepEquals([2, 3, 4, 6, 7, 8, 9]);
+          check(
+            big.remove(1).remove(0).remove(5).values,
+          ).deepEquals([2, 3, 4, 6, 7, 8, 9]);
 
           final w = treapFactory([1]);
           check(x.values).deepEquals(w.values);
-          check(x)
-              .not((it) => it.equals(w)); // equal items does not imply equality
+          check(
+            x,
+          ).not((it) => it.equals(w)); // equal items does not imply equality
         });
 
         test('empty', () {
@@ -99,10 +104,23 @@ void main() {
         test('rank, select', () {
           final top = treapFactory([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]..mix());
           check(top.values).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-          check(top.values.map((i) => top.rank(i)))
-              .deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-          check([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-              .fold(true, (acc, i) => acc && top.select(i) == i)).isTrue();
+          check(
+            top.values.map((i) => top.rank(i)),
+          ).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+          check(
+            [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+            ].fold(true, (acc, i) => acc && top.select(i) == i),
+          ).isTrue();
         });
 
         test('select when empty', () {
@@ -193,8 +211,9 @@ void main() {
           final ty = Treap.of(y);
 
           check((tx | ty).values).deepEquals(x.union(y).toList()..sort());
-          check((tx & ty).values)
-              .deepEquals(x.intersection(y).toList()..sort());
+          check(
+            (tx & ty).values,
+          ).deepEquals(x.intersection(y).toList()..sort());
           check((tx - ty).values).deepEquals(x.difference(y).toList()..sort());
         });
       });
@@ -231,23 +250,40 @@ void main() {
 
         final fifth = erase(forth, 0, ctx);
         check(fifth!.inOrder().map((n) => n.item)).deepEquals([1, 2, 3]);
-        check(identical(third, fifth)).isFalse();
+        check(forth.inOrder().map((n) => n.item)).deepEquals([0, 1, 2, 3]);
 
-        check(erase(forth, 2, ctx)!.inOrder().map((n) => n.item))
-            .deepEquals([0, 1, 3]);
+        check(
+          erase(forth, 2, ctx)!.inOrder().map((n) => n.item),
+        ).deepEquals([0, 1, 3]);
       });
 
       test('rank, select', () {
         final top = [1, 2, 3, 4, 5, 6, 7, 8, 9].reversed.fold(
-            createNode(0), (acc, i) => upsert(acc, i, true, ctx, createNode));
-        check(top.inOrder().map((n) => n.item))
-            .deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        check(top.inOrder().map((n) => rank(top, n.item, ctx)))
-            .deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+          createNode(0),
+          (acc, i) => upsert(acc, i, true, ctx, createNode),
+        );
+        check(
+          top.inOrder().map((n) => n.item),
+        ).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        check(
+          top.inOrder().map((n) => rank(top, n.item, ctx)),
+        ).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         check(rank(top, -1, ctx)).equals(0); // -1 goes before all
         check(rank(top, 100, ctx)).equals(10); // 100 goes after all
-        check([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            .fold(true, (acc, i) => acc && select(top, i).item == i)).isTrue();
+        check(
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+          ].fold(true, (acc, i) => acc && select(top, i).item == i),
+        ).isTrue();
       });
 
       test('preOrder, inOrder, postOrder', () {
@@ -259,12 +295,18 @@ void main() {
           ImmutableNode(0, 0), // will have same priority (5, 0)
           (acc, i) => upsert(acc, i, true, ctx, node),
         );
-        check(top.inOrder().map((n) => n.item))
-            .deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        check(top.preOrder().map((n) => n.item))
-            .deepEquals([7, 4, 2, 1, 0, 3, 6, 5, 8, 9]);
-        check(top.postOrder().map((n) => n.item))
-            .deepEquals([0, 1, 3, 2, 5, 6, 4, 9, 8, 7]);
+        check(
+          top.inOrder().map((n) => n.item),
+        ).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        // The shape is random, so check the traversals against each other:
+        // pre-order starts at the root, post-order ends there, and each
+        // visits every node once.
+        final pre = top.preOrder().map((n) => n.item).toList();
+        final post = top.postOrder().map((n) => n.item).toList();
+        check(pre.first).equals(top.item);
+        check(post.last).equals(top.item);
+        check(pre..sort()).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        check(post..sort()).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       });
     });
   }
