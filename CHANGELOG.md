@@ -1,3 +1,12 @@
+## Unreleased
+
+- `join` picks the root by a size-weighted coin instead of by stored
+  priority, so shared subtrees (`x.append(x)`) keep logarithmic depth.
+  `priority` is kept but no longer read, and `checkInvariant` checks the
+  size sum instead of heap order. Reseed `joinRandom` to replay a run.
+- `join2` descends the seam once with the same coin instead of splitting
+  off the last node first, so `append` and `erase` cost O(log n).
+
 ## 0.4.0
 
 - Added specialized set variants for deeply immutable primitive types
